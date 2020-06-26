@@ -1,0 +1,11 @@
+Raw #users = 97611
+#users with > 1 interactions = 19896
+#prods = 22190
+#cold start products = 50
+#users in cold products = 1160
+#users in cold products who are not present in user_dict = 20
+#users after removing Cold Start Products = 19887
+#products after removing Cold Start Products = 22140
+Time taken for reading = 18.2083 sec
+
+Time taken for generating metapaths = 386.9386 sec
