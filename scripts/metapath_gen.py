@@ -14,7 +14,7 @@ def rate_weighted(rate_list):
 
 
 def metapaths_gen(user_dict, prod_dict, dataset_name, numwalks = 20, walklength = 10):
-	outfile = open('../saved/'+dataset_name+'_metapaths.txt', 'w')
+	outfile = open('../saved/{}/{}_metapaths.txt'.format(dataset_name, dataset_name), 'w')
 	for user0 in tqdm(user_dict):
 		for _ in range(numwalks):
 			path = user0
@@ -30,14 +30,14 @@ def metapaths_gen(user_dict, prod_dict, dataset_name, numwalks = 20, walklength 
 	outfile.close()
 
 def main(dataset_name):
-	user_dict = pickle.load(open('../saved/'+dataset_name+'_user_dict.pkl', 'rb'))
-	prod_dict = pickle.load(open('../saved/'+dataset_name+'_prod_dict.pkl', 'rb'))
+	user_dict = pickle.load(open('../saved/{}/{}_user_dict.pkl'.format(dataset_name, dataset_name), 'rb'))
+	prod_dict = pickle.load(open('../saved/{}/{}_prod_dict.pkl'.format(dataset_name, dataset_name), 'rb'))
 	start = time.time()
 	metapaths_gen(user_dict, prod_dict, 'Baby')
 	end = time.time()
 	elapsed = end - start
 	print('Time Taken = ', elapsed)
-	with open('../log/'+dataset_name+'_reading_log.txt', 'a') as logfile:
+	with open('../log/'+dataset_name+'_log.txt', 'a') as logfile:
 		logfile.write('\nTime taken for generating metapaths = {:.4f} sec\n'.format(elapsed))
 
 if __name__ == '__main__':

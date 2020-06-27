@@ -6,6 +6,7 @@ import numpy as np
 import random
 import pandas as pd
 import time
+from tqdm import tqdm
 
 def readImageFeatures(path):
     f = open(path, 'rb')
@@ -47,9 +48,9 @@ def reverse_(D):
     return nD
 
 def remove_cold_start(prod_dict, user_dict):
-    random.seed(42)
+    random.seed(7)
     len_dict1 = {prod:prod_dict[prod] for prod in prod_dict if (len(prod_dict[prod]) < 25 and len(prod_dict[prod]) >= 10)}
-    random.seed(42)
+    random.seed(7)
     len_dict2 = {prod:prod_dict[prod] for prod in prod_dict if (len(prod_dict[prod]) < 50 and len(prod_dict[prod]) >= 25)}
     keys1 = random.sample(list(len_dict1.keys()), 30)
     keys2 = random.sample(list(len_dict2.keys()), 20)
@@ -75,13 +76,14 @@ def Helper(cold_start, new_user_dict):
 
 def prepare_data(path_to_review_file, dataset_name):
     try:
-        cold_start = pickle.load(open('../saved/'+dataset_name+'cold_start.pkl', 'rb'))
-        user_dict = pickle.load(open('../saved/'+dataset_name+'user_dict.pkl', 'rb'))
-        prod_dict = pickle.load(open('../saved/'+dataset_name+'prod_dict.pkl', 'rb'))
-        return cold_start, user_dict, prod_dict
+        cold_start = pickle.load(open('../saved/{}/{}_cold_start.pkl'.format(dataset_name, dataset_name), 'rb'))
+        user_dict = pickle.load(open('../saved/{}/{}_user_dict.pkl'.format(dataset_name, dataset_name), 'rb'))
+        prod_dict = pickle.load(open('../saved/{}/{}_prod_dict.pkl'.format(dataset_name, dataset_name), 'rb'))
+        return cold_start, prod_dict, user_dict
     except:
         start = time.time()
-        logfile = open('../log/'+dataset_name+'_reading_log.txt', 'w')
+        logfile = open('../log/'+dataset_name+'_log.txt', 'w')
+        logfile.write('\n-----READING DATA-----\n')
         review_data = getDF(path_to_review_file)
         user_dict_p = {u: list(p) for u, p in review_data.groupby('uid')['pid']}
         user_dict_r = {u: list(r) for u, r in review_data.groupby('uid')['rating']}
@@ -104,20 +106,66 @@ def prepare_data(path_to_review_file, dataset_name):
         logfile.write('#users in cold products = {}\n'.format((tot)))
         logfile.write('#users in cold products who are not present in user_dict = {}\n'.format((n)))
         logfile.write('#users after removing Cold Start Products = {}\n'.format(len(new_user_dict)))
-        # print('#users after removing Cold Start Products = {}'.format(len(new_user_dict)))
+        
         logfile.write('#products after removing Cold Start Products = {}\n'.format(len(new_prod_dict)))
-        # print('#products after removing Cold Start Products = {} sec'.format(len(new_prod_dict)))
+        
         end = time.time()
         elapsed = end - start
         logfile.write('Time taken for reading = {:.4f} sec\n'.format(elapsed))
         logfile.close()
-        with open('../saved/'+dataset_name+'_cold_start.pkl', 'wb') as file:
-            pickle.dump(cold_start, file)
-        with open('../saved/'+dataset_name+'_user_dict.pkl', 'wb') as file:
-            pickle.dump(new_user_dict, file)
-        with open('../saved/'+dataset_name+'_prod_dict.pkl', 'wb') as file:
-            pickle.dump(new_prod_dict, file)
     return cold_start, new_prod_dict, new_user_dict
 
+def refine(user_dict, prod_dict, cold_start, prod_images, cold_images, dataset_name):
+    ref_cold, ref_user, ref_prod = {}, {}, {}
+    ref_cold = {pid:cold_start[pid] for pid in cold_images}
+    ref_prod = {pid:prod_dict[pid] for pid in prod_images}
+    ref_user = reverse_(ref_prod)
+    return ref_cold, ref_user, ref_prod
+
+def prepare_image_data(user_dict, prod_dict, cold_start, image_path, dataset_name):
+    try:
+        cold_images = pickle.load(open('../saved/{}/{}_cold_images.pkl'.format(dataset_name, dataset_name), 'rb'))
+        prod_images = pickle.load(open('../saved/{}/{}_prod_images.pkl'.format(dataset_name, dataset_name), 'rb'))
+    except:
+        start = time.time()
+        cold_images = {}
+        prod_images = {}
+        try:
+            for pid, image in tqdm(readImageFeatures(image_path)):
+                pid = pid.decode('ascii')
+                try:
+                    tmp = prod_dict[pid]
+                    prod_images[pid] = image
+                except:
+                    pass
+                try:
+                    tmp = cold_start[pid]
+                    cold_images[pid] = image
+                except:
+                    pass
+        except EOFError:
+            print('File Read')
+        end = time.time()
+        elapsed = end - start
+        with open('../log/'+dataset_name+'_log.txt', 'a') as logfile:
+            logfile.write('\nTime taken for reading images = {:.4f} sec\n'.format(elapsed))
+        with open('../saved/{}/{}_cold_images.pkl'.format(dataset_name, dataset_name), 'wb') as file:
+            pickle.dump(cold_images, file)
+        with open('../saved/{}/{}_prod_images.pkl'.format(dataset_name, dataset_name), 'wb') as file:
+            pickle.dump(prod_images, file)
+
+        cold_start, user_dict, prod_dict = refine(user_dict, prod_dict, cold_start, prod_images, cold_images, dataset_name)
+        with open('../saved/{}/{}_cold_start.pkl'.format(dataset_name, dataset_name), 'wb') as file:
+            pickle.dump(cold_start, file)
+        with open('../saved/{}/{}_user_dict.pkl'.format(dataset_name, dataset_name), 'wb') as file:
+            pickle.dump(user_dict, file)
+        with open('../saved/{}/{}_prod_dict.pkl'.format(dataset_name, dataset_name), 'wb') as file:
+            pickle.dump(prod_dict, file)
+        with open('../log/'+dataset_name+'_log.txt', 'a') as logfile:
+            logfile.write('\nFinal stats after removing missing image files:\n')
+            logfile.write('#users = {}\n #products = {}\n #cold_start = {}\n'.format(len(user_dict), len(prod_dict), len(cold_start)))
+    return prod_images, cold_images
+
 if __name__ == '__main__':
-    prepare_data('../raw_data/reviews_Baby.votes', 'Baby')
+    cold_start, prod_dict, user_dict = prepare_data('../raw_data/Baby/reviews_Baby.votes', 'Baby')
+    prod_images, cold_images = prepare_image_data(user_dict, prod_dict, cold_start, '../raw_data/Baby/image_features_Baby.b', 'Baby')
