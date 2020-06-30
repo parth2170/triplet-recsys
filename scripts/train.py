@@ -34,7 +34,6 @@ def generate_samples(encoded_data, encoded_vocab, dataset_name, batch_size):
 			context_words = [w for index, w in enumerate(window) if index != int(window_size/2)]
 			for word in context_words:
 				samples.append([to_categorical(centre_word, num_classes = len(encoded_vocab)), to_categorical(word, num_classes = len(encoded_vocab))])
-				# samples.append([centre_word, word])
 			data_index += hop_size
 		samples = np.array(samples)
 		yield [samples[:,0], samples[:,1]], 0
@@ -46,7 +45,7 @@ def normalize(T):
 
 def make_emb_matrix(reverse_encoded_vocab, prod_images):
 	check = 0
-	embedding_matrix = np.random.normal(0,1,(len(reverse_encoded_vocab), 4096))
+	embedding_matrix = np.random.normal(0,1,(len(reverse_encoded_vocab), 100))
 	for i in reverse_encoded_vocab:
 		try:
 			embedding_matrix[i] = normalize(prod_images[reverse_encoded_vocab[i]])
@@ -57,7 +56,7 @@ def make_emb_matrix(reverse_encoded_vocab, prod_images):
 	return embedding_matrix
 
 def train(dataset_name):
-	batch_size = 256
+	batch_size = 32
 
 	user_dict = pickle.load(open('../saved/{}/{}_user_dict.pkl'.format(dataset_name, dataset_name), 'rb'))
 	prod_dict = pickle.load(open('../saved/{}/{}_prod_dict.pkl'.format(dataset_name, dataset_name), 'rb')) 

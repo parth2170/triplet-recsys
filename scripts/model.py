@@ -13,16 +13,13 @@ from keras.layers import Dense, Dropout, BatchNormalization, Activation, Lambda,
 
 
 def build_network(vocab_length, embedding_matrix):
-	embeddingsize = 128 
+	embeddingsize = 50 
 	network = Sequential()
 	network.add(Embedding(input_dim = vocab_length, 
-						output_dim = 4096,
+						output_dim = 100,
 						weights=[embedding_matrix],
 						input_length=None))
-	network.add(Dense(1024, activation='relu', 
-						kernel_initializer='he_uniform'))
-	network.add(Dropout(0.5))
-	network.add(Dense(512, activation='relu', 
+	network.add(Dense(75, activation='relu', 
 						kernel_initializer='he_uniform'))
 	network.add(Dropout(0.5)) 
 	network.add(Dense(embeddingsize, activation=None, 
