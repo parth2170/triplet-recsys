@@ -33,10 +33,10 @@ def get_embeddings(model, prod_images, cold_images):
 	layer_name = 'dense_3'
 	intermediate_layer_model = Model(inputs=model.input, outputs=model.get_layer(layer_name).output)
 	for pid in prod_images:
-		prod_images[pid] = prod_images[pid]/np.sum(prod_images[pid])
+		prod_images[pid] = np.array(prod_images[pid])/np.sum(prod_images[pid])
 		prod_images[pid] = intermediate_layer_model.predict(np.array([prod_images[pid]]))[0,:]
 	for pid in cold_images:
-		cold_images[pid] = cold_images[pid]/np.sum(cold_images[pid])
+		cold_images[pid] = np.array(cold_images[pid])/np.sum(cold_images[pid])
 		cold_images[pid] = intermediate_layer_model.predict(np.array([cold_images[pid]]))[0,:]
 	return prod_images, cold_images
 
@@ -46,8 +46,8 @@ def main(dataset_name):
 	prod_images = pickle.load(open('../saved/{}/{}_prod_images.pkl'.format(dataset_name, dataset_name), 'rb'))
 	cold_images = pickle.load(open('../saved/{}/{}_cold_images.pkl'.format(dataset_name, dataset_name), 'rb'))
 
-	X = [prod_images[pid] for pid in prod_images]
-	X = [i/sum(i) for i in X]
+	X = [np.array(prod_images[pid]) for pid in prod_images]
+	X = [i/np.sum(i) for i in X]
 	X = np.array(X)
 
 	model = train(output_dims, X)
