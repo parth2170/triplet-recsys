@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from torch.autograd import Variable
-from make_imdb import *
-from pytorch_model import Triplet_Embeddings
+from make_2 import *
+from model_2 import SkipMod
 
 def get_embeddings(model, reverse_encoded_vocab):
 
@@ -27,9 +27,6 @@ def train():
 	total_words = len(all_embeddings)
 	print('\nVocabulary size = ', total_words)
 
-
-	co_mat = co_occourance_matrix(corpus, encoded_vocab)
-
 	## Remove some embeddings
 	random.seed(42)
 	known_words = random.sample(list(all_embeddings.keys()), int(len(all_embeddings)/2))
@@ -45,7 +42,7 @@ def train():
 	gc.collect()
 
 	## Declare model and optimizer
-	model = Triplet_Embeddings(vocab_size = total_words, embedding_dimension = 300, output_dimension = 50, reverse_encoded_vocab = reverse_encoded_vocab, known_embeddings = known_embeddings)
+	model = SkipMod(vocab_size = total_words, embedding_dimension = 300, output_dimension = 50, reverse_encoded_vocab = reverse_encoded_vocab, known_embeddings = known_embeddings)
 	
 	del known_embeddings
 	gc.collect()
@@ -56,6 +53,7 @@ def train():
 	optimizer = torch.optim.Adam(model.parameters(), lr = 0.001)
 
 	print('\nStart Training\n')
+
 	epoch_num = 5
 	batch_size = 128
 	Kill = True
@@ -64,22 +62,20 @@ def train():
 		start = time.time()
 		batch_id = 0
 
-		for batch in generate_triplets(corpus, co_mat, batch_size):
+		for batch in generate_samples(corpus, batch_size):
 			
 			batch = np.array(batch)
 
-			anchors = Variable(torch.LongTensor(batch[:,0]))
-			positives = Variable(torch.LongTensor(batch[:,1]))
-			negatives = Variable(torch.LongTensor(batch[:,2]))
+			words = Variable(torch.LongTensor(batch[:,0]))
+			context_words = Variable(torch.LongTensor(batch[:,1]))
 
 			if torch.cuda.is_available():
-				anchors = anchors.cuda()
-				positives = positives.cuda()
-				negatives = negatives.cuda()
+				words = words.cuda()
+				context_words = context_words.cuda()
 
 			optimizer.zero_grad()
 
-			loss = model(anchors, positives, negatives)
+			loss = model(words, context_words)
 			loss.backward()
 
 			if Kill:

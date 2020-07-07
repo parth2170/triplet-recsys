@@ -77,21 +77,17 @@ def co_occourance_matrix(encoded_data, encoded_vocab):
 
 data_index = 0
 
-def generate_triplets(encoded_data, co_mat, batch_size):
+def generate_samples(encoded_data, batch_size):
 	window_size = 5
 	hop_size = 3
 	global data_index
-	k = int(co_mat.shape[0] * 0.1)
 	samples = []
 	while((data_index < len(encoded_data) - window_size)):
 		while((len(samples) < batch_size)):
 			window = encoded_data[data_index : data_index + window_size]
-			anchor = window[int(window_size/2)]
-			positives = [window[j] for j in range(window_size) if j != int(window_size/2)]
-			negatives = np.argpartition(co_mat[anchor], k)[:k]
-			for positive in positives:
-				negative = np.random.choice(negatives)
-				samples.append([anchor, positive, negative])
+			word = window[int(window_size/2)]
+			context_words = [window[j] for j in range(window_size) if j != int(window_size/2)]
+			samples.extend([[word, context] for context in context_words])
 			data_index += hop_size
 		yield samples
 
