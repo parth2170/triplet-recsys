@@ -11,13 +11,17 @@ from torch.autograd import Variable
 from make_2 import *
 from model_2 import SkipMod
 
-def get_embeddings(model, reverse_encoded_vocab):
+def get_embeddings(model, reverse_encoded_vocab, epoch, batch_id):
+
+	embedding_matrix = model.embeddings.weight.data
+	embedding_matrix = embedding_matrix.numpy()
 
 	final_layer_embeddings = {}
+
 	for i in reverse_encoded_vocab:
-		ouput = model.pass_(torch.tensor([i]))[0]
-		final_layer_embeddings[reverse_encoded_vocab[i]] = ouput.detach().numpy()
-	with open('saved/final_layer_embeddings.pkl', 'wb') as file:
+		final_layer_embeddings[reverse_encoded_vocab[i]] = embedding_matrix[i]
+	
+	with open('saved/imdb_embeddings_e-{}_b-{}_.pkl'.format(epoch, batch_id), 'wb') as file:
 		pickle.dump(final_layer_embeddings, file)
 
 def train():
@@ -50,16 +54,19 @@ def train():
 	if torch.cuda.is_available():
 			print('!!GPU!!')
 			model.cuda()
-	optimizer = torch.optim.Adam(model.parameters(), lr = 0.001)
+
+	optimizer = torch.optim.Adam(model.parameters(), lr = 0.01)
+	scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', , patience = 200, verbose = True)
 
 	print('\nStart Training\n')
 
-	epoch_num = 5
-	batch_size = 128
+	epoch_num = 1
+	batch_size = 32
 	Kill = True
 
 	for epoch in range(epoch_num):
-		start = time.time()
+		start_e = time.time()
+		start_b = time.time()
 		batch_id = 0
 
 		for batch in generate_samples(corpus, batch_size):
@@ -83,21 +90,27 @@ def train():
 				for known in known_words:
 					i = encoded_vocab[known]
 					first_layer.grad[i] *= 0
+
 			optimizer.step()
+			scheduler.step(loss)
+
 			batch_id += 1
 
-			if batch_id % 200 == 0:
-				print('epoch = {} batch = {} loss = {:.4f}'.format(epoch, batch_id, loss))
+			if batch_id % 1000 == 0:
+				end_b = time.time()
+				print('epoch = {}\tbatch = {}\tloss = {:.4f}\ttime = {:.2f}'.format(epoch, batch_id, loss, end_b - start_b))
+				start_b = time.time()
+			if batch_id % 25000 == 0:
+				print('Saving model and embeddings')
+				torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, batch_id/25000))
+				get_embeddings(model, reverse_encoded_vocab, epoch, batch_id)
 
-		end = time.time()
+		end_e = time.time()
 
 		print('####################### EPOCH DONE ##########################')
-		print('epoch = {} batch = {} loss = {:.4f} time = {:.4f}'.format(epoch, batch_id, loss, end - start))
-		torch.save(model.state_dict(), 'saved/imdb_model.epoch_{}_'.format(epoch))
+		print('epoch = {} batch = {} loss = {:.4f} time = {:.4f}'.format(epoch, batch_id, loss, end_e - start_b))
 
 	print("\nOptimization Finished")
-
-	get_embeddings(model, reverse_encoded_vocab)
 	return model
 
 if __name__ == '__main__':
