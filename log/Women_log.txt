@@ -1,0 +1,27 @@
+Raw #users = 1289389
+#users with > 1 interactions = 36648
+#corresponding prods = 184966
+#cold start products = 50
+#users in cold products = 1054
+#users in cold products who are not present in user_dict = 0
+#users after removing Cold Start Products = 36648
+#products after removing Cold Start Products = 184916
+
+Final stats after removing missing image files:
+#users = 36648
+ #products = 183842
+ #cold_start = 49
+
+Time taken for reading data = 435.5904 sec
+
+Time taken for generating metapaths = 0.0167 sec
+
+Time taken for generating metapaths = 0.1315 sec
+
+Time taken for generating metapaths = 0.0173 sec
+
+Time taken for generating metapaths = 0.0168 sec
+
+Time taken for generating metapaths = 0.0167 sec
+
+Time taken for generating metapaths = 149.8490 sec
