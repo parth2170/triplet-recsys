@@ -62,7 +62,7 @@ def train(category, weight):
 
 	print('\nStart Training\n')
 
-	epoch_num = 2
+	epoch_num = 5
 	batch_size = 256
 	Kill = True
 
@@ -70,6 +70,8 @@ def train(category, weight):
 	print('#products/#users = ', p_u_ratio)
 
 	for epoch in range(epoch_num):
+		user_gen = generate_user_samples(user_list, user_dict, prod_dict, encoded_vocab, batch_size)
+		prod_gen = generate_prod_samples(prod_list, user_dict, prod_dict, encoded_vocab, batch_size)
 		start_e = time.time()
 		start_b = time.time()
 		batch_id = 0
@@ -80,31 +82,32 @@ def train(category, weight):
 			try:
 				# First try to get user and product batches according to the p_u_ratio
 				if batch_id % p_u_ratio == 0:
-					batch = next(generate_user_samples(user_list, user_dict, prod_dict, encoded_vocab, batch_size))
+					batch = next(user_gen)
 					train_mode = 'user'
 				else:
-					batch = next(generate_prod_samples(prod_list, user_dict, prod_dict, encoded_vocab, batch_size))
+					batch = next(prod_gen)
 					image_batch, meta_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
 					train_mode = 'prod'
 				# This will throw an error when user batches are finished
 			except:
 				# Try generating leftover image batches
 				try:
-					batch = next(generate_prod_samples(prod_list, user_dict, prod_dict, encoded_vocab, batch_size))
+					batch = next(prod_gen)
 					image_batch, meta_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
 					train_mode = 'prod'
 				# If this throws error then images are finished
 				except:
 					end_e = time.time()
 					print('####################### EPOCH DONE ##########################')
-					print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.4f}\timage_loss = {:.4f}\ttime = {:.2f}'.format(epoch, batch_id, skip_gram_loss, image_loss, end_b - start_b))
+					print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.4f}\timage_loss = {:.4f}\ttime = {:.2f}'.format(epoch, batch_id, skip_gram_loss, image_loss, end_e - start_e))
 					print('Saving model and embeddings')
-					torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, int(batch_id/25000)))
-					get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/25000))
+					# torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, int(batch_id/25000)))
+					# get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/25000))
 					flag = False
-
+			
+			if flag == False:
+				break
 			batch = np.array(batch)
-
 			words = Variable(torch.LongTensor(batch[:,0]))
 			context_words = Variable(torch.LongTensor(batch[:,1]))
 			if train_mode == 'prod':
@@ -148,23 +151,23 @@ def train(category, weight):
 
 			batch_id += 1
 
-			if batch_id % 1000 == 0:
+			if batch_id % 100 == 0:
 				end_b = time.time()
 				print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.4f}\timage_loss = {:.4f}\ttime = {:.2f}'.format(epoch, batch_id, skip_gram_loss, image_loss, end_b - start_b))
 				start_b = time.time()
 			if batch_id % 25000 == 0:
 				print('Saving model and embeddings')
-				torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, int(batch_id/25000)))
-				get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/25000))
+				# torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, int(batch_id/25000)))
+				# get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/25000))
 
-		print('epoch = {} batch = {} loss = {:.4f} time = {:.4f}'.format(epoch, batch_id, loss, end_e - start_b))
-		print('Saving model and embeddings')
-		torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, int(batch_id/25000)))
-		get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/25000))
+		# print('epoch = {} batch = {} loss = {:.4f} time = {:.4f}'.format(epoch, batch_id, loss, end_e - start_b))
+		# print('Saving model and embeddings')
+		# torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, int(batch_id/25000)))
+		# get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/25000))
 
 	print("\nOptimization Finished")
 	return model
 
 if __name__ == '__main__':
-	model = train("Baby", True)
+	model = train("Men", True)
 

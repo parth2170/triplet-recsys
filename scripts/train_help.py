@@ -89,12 +89,12 @@ def user_graph_walk(user, user_dict, prod_dict, encoded_vocab):
 	prods_1 = user_dict[user]
 	samples = [[encoded_vocab[user], encoded_vocab[id_]] for id_, _ in prods_1]
 	# degree 2 neighbours
-	for _ in range(int(len(prods_1)/2)):
+	for _ in range(int(len(prods_1))):
 		sample_prod = rate_weighted(prods_1)
 		sample_user = rate_weighted(prod_dict[sample_prod])
 		samples.append([encoded_vocab[user], encoded_vocab[sample_user]])
 		# degree 3 neighbours
-		for _ in range(int(len(prods_1)/8)):
+		for _ in range(int(len(prods_1)/4)):
 			prods_2 = user_dict[sample_user]
 			sample_prod = rate_weighted(prods_2)
 			samples.append([encoded_vocab[user], encoded_vocab[sample_prod]])
@@ -105,12 +105,12 @@ def prod_graph_walk(prod, user_dict, prod_dict, encoded_vocab):
 	users_1 = prod_dict[prod]
 	samples = [[encoded_vocab[prod], encoded_vocab[id_]] for id_, _ in users_1]
 	# degree 2 neighbours
-	for _ in range(int(len(users_1)/2)):
+	for _ in range(int(len(users_1))):
 		sample_user = rate_weighted(users_1)
 		sample_prod = rate_weighted(user_dict[sample_user])
 		samples.append([encoded_vocab[prod], encoded_vocab[sample_prod]])
 		# degree 3 neighbours
-		for _ in range(int(len(users_1)/8)):
+		for _ in range(int(len(users_1)/4)):
 			users_2 = prod_dict[sample_prod]
 			sample_user = rate_weighted(users_2)
 			samples.append([encoded_vocab[prod], encoded_vocab[sample_user]])
