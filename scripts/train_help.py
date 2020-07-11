@@ -5,6 +5,7 @@ import pickle
 import numpy as np 
 import pandas as pd
 from tqdm import tqdm
+from sklearn.preprocessing import MultiLabelBinarizer
 
 
 def parse(path):
@@ -24,12 +25,17 @@ def get_meta_data(prod_images, cold_images, category):
 			pid = D['asin']
 			try:
 				prod_images[pid]
-				prod_meta_info[pid] = list(set([att for L in D['categories'] for att in L if(att != dataset_name and att != 'Clothing, Shoes & Jewelry')]))
+				tmp = []
+				for L in D['categories']:
+					tmp.extend([att for att in L if(att != dataset_name and att != 'Clothing, Shoes & Jewelry')])
+					prod_meta_info[pid] = list(set(tmp))
 			except:
 				pass
 			try:
 				cold_images[pid]
-				cold_meta_info[pid] = list(set([att for L in D['categories'] for att in L if(att != dataset_name and att != 'Clothing, Shoes & Jewelry')]))
+				for L in D['categories']:
+					tmp.extend([att for att in L if(att != dataset_name and att != 'Clothing, Shoes & Jewelry')])
+					cold_meta_info[pid] = list(set(tmp))
 			except:
 				pass
 		print('# of products for which meta information is available = ', len(prod_meta_info))
@@ -49,7 +55,11 @@ def get_image_data(category):
 	all_meta_labels = [label for pid in prod_meta_info for label in prod_meta_info[pid] ]
 	all_meta_labels.extend([label for pid in cold_meta_info for label in cold_meta_info[pid] ])
 	all_meta_labels = list(set(all_meta_labels))
-
+	print('Total # meta-labels = ', len(all_meta_labels))
+	mlb = MultiLabelBinarizer()
+	mlb.fit([all_meta_labels])
+	prod_meta_info = {prod:mlb.transform([prod_meta_info[prod]])[0] for prod in prod_meta_info}
+	cold_meta_info = {prod:mlb.transform([cold_meta_info[prod]])[0] for prod in cold_meta_info}
 	return prod_images, cold_images, prod_meta_info, cold_meta_info, all_meta_labels
 
 def encode(category, weight):
@@ -147,10 +157,9 @@ def generate_prod_samples(prod_list, user_dict, prod_dict, encoded_vocab, batch_
 		if len(batch) == batch_size:
 			yield batch
 
-def generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab):
-	print(prod_meta_info.keys())    
+def generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab):   
 	prods = [reverse_encoded_vocab[sample[0]] for sample in batch]
 	image_batch = np.array([prod_images[prod] for prod in prods])
-	meta_batch = np.array([prod_meta_info[prod] for prod in prods])
-	return image_batch, meta_batch
+	# meta_batch = np.array([prod_meta_info[prod] for prod in prods])
+	return image_batch , 0#, meta_batch
 		
