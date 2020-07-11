@@ -17,7 +17,7 @@ def get_meta_data(prod_images, cold_images, category):
 		prod_meta_info = pickle.load(open('../saved/{}_prod_meta_dimred.pkl'.format(category), 'rb'))
 		cold_meta_info = pickle.load(open('../saved/{}_cold_meta_dimred.pkl'.format(category), 'rb'))
 	except:
-		meta_file_path = '../raw_data/metaaaaaa'
+		meta_file_path = '../raw_data/meta_Clothing_Shoes_and_Jewelry.json'
 		prod_meta_info = {}
 		cold_meta_info = {}
 		for D in tqdm(parse(meta_file_path)):
@@ -41,21 +41,20 @@ def get_meta_data(prod_images, cold_images, category):
 
 def get_image_data(category):
 
-	meta_file_path = '../saved/mtaaaaaaaa'
 	print('Loading image features data')
-	prod_images = pickle.load(open('../saved/{}_prod_images.pkl', 'rb'))
-	cold_images = pickle.load(open('../saved/{}_cold_images.pkl', 'rb'))
+	prod_images = pickle.load(open('../saved/{}_prod_images.pkl'.format(category), 'rb'))
+	cold_images = pickle.load(open('../saved/{}_cold_images.pkl'.format(category), 'rb'))
 	prod_meta_info, cold_meta_info = get_meta_data(prod_images, cold_images, category)
 
-	all_meta_labels = [label for label in prod_meta_info[pid] for pid in prod_meta_info]
-	all_meta_labels.extend([label for label in cold_meta_info[pid] for pid in cold_meta_info])
+	all_meta_labels = [label for pid in prod_meta_info for label in prod_meta_info[pid] ]
+	all_meta_labels.extend([label for pid in cold_meta_info for label in cold_meta_info[pid] ])
 	all_meta_labels = list(set(all_meta_labels))
 
 	return prod_images, cold_images, prod_meta_info, cold_meta_info, all_meta_labels
 
 def encode(category, weight):
-	user_dict = pickle.load(open('../saved/{}_user_dict.pkl', 'rb'))
-	prod_dict = pickle.load(open('../saved/{}_prod_dict.pkl', 'rb'))
+	user_dict = pickle.load(open('../saved/{}_user_dict.pkl'.format(category), 'rb'))
+	prod_dict = pickle.load(open('../saved/{}_prod_dict.pkl'.format(category), 'rb'))
 
 	vocab = list(user_dict.keys())
 	vocab.extend(list(prod_dict.keys()))
@@ -149,6 +148,7 @@ def generate_prod_samples(prod_list, user_dict, prod_dict, encoded_vocab, batch_
 			yield batch
 
 def generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab):
+	print(prod_meta_info.keys())    
 	prods = [reverse_encoded_vocab[sample[0]] for sample in batch]
 	image_batch = np.array([prod_images[prod] for prod in prods])
 	meta_batch = np.array([prod_meta_info[prod] for prod in prods])

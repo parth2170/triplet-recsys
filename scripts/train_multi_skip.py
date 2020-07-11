@@ -1,3 +1,4 @@
+
 import os
 import gc
 import time
@@ -33,7 +34,7 @@ def train(category, weight):
 	
 	user_list = list(user_dict.keys())
 	user_list.sort()
-	prod_list = list(prod_list.keys())
+	prod_list = list(prod_dict.keys())
 	prod_list.sort()
 
 	total_words = len(encoded_vocab)
@@ -81,14 +82,14 @@ def train(category, weight):
 					batch = next(generate_user_samples(user_list, user_dict, prod_dict, encoded_vocab, batch_size))
 					train_mode = 'user'
 				else:
-					batch = next(generate_prod_samples(user_list, user_dict, prod_dict, encoded_vocab, batch_size))
+					batch = next(generate_prod_samples(prod_list, user_dict, prod_dict, encoded_vocab, batch_size))
 					image_batch, meta_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
 					train_mode = 'prod'
 				# This will throw an error when user batches are finished
 			except:
 				# Try generating leftover image batches
 				try:
-					batch = next(generate_prod_samples(user_list, user_dict, prod_dict, encoded_vocab, batch_size))
+					batch = next(generate_prod_samples(prod_list, user_dict, prod_dict, encoded_vocab, batch_size))
 					image_batch, meta_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
 					train_mode = 'prod'
 				# If this throws error then images are finished
@@ -116,21 +117,25 @@ def train(category, weight):
 			skip_optimizer.zero_grad()
 			image_optimizer.zero_grad()
 
-			skip_gram_loss = skip_gram_model(words, context_words)
+			skip_gram_loss, skip_gram_emb = skip_gram_model(words, context_words)
 
 			if train_mode == 'user':
 				skip_gram_loss.backward()
 				skip_optimizer.step()
 				skip_scheduler.step(skip_gram_loss)
 				# Copy the skip-gram embedding matrix to the ImageDecoder 
-				image_model.embeddings.weight.data.copy_(skip_gram_model.embeddings.weight.data)
+# 				image_model.embeddings.weight.data.copy_(skip_gram_model.embeddings.weight.data)
+				skip_optimizer.zero_grad()
 
 			if train_mode == 'prod':
-				pred_image, pred_meta = image_model(emb)
-				multi_task_loss = multi_task_model(skip_gram_loss, pred_image, image_batch, pred_meta, meta_batch)
+				pred_image, pred_meta = image_model(skip_gram_emb)
+				skip_gram_emb_loss, skip_gram_image_loss = multi_task_model(skip_gram_loss, pred_image, image_batch, pred_meta, meta_batch)
 
 				########################
-				## backprop here
+				skip_gram_image_loss.backward()
+				image_optimizer.step()
+				image_scheduler.step(skip_gram_image_loss)
+				image_optimizer.zero_grad()
 				########################
 
 				# Copy the ImageDecoder embedding matrix to skip-gram
@@ -157,5 +162,5 @@ def train(category, weight):
 	return model
 
 if __name__ == '__main__':
-	model = train()
+	model = train("Baby", True)
 

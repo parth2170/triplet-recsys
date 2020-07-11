@@ -6,13 +6,13 @@ import torch.nn.functional as F
 
 class SkipGram(nn.Module):
 
-	def __init__(self, vocab_size, embedding_dimension, embedding_initialization):
+	def __init__(self, vocab_size, embedding_dimension):
 
-		super(MultiSkip, self).__init__()
+		super(SkipGram, self).__init__()
 
 		# Input Embeddings
 		self.embeddings = nn.Embedding(vocab_size, embedding_dimension)
-		self.embeddings.weight.data.copy_(torch.from_numpy(embedding_initialization))
+# 		self.embeddings.weight.data.copy_(torch.from_numpy(embedding_initialization))
 		# Skip-Gram Linear Layer
 		self.skip_gram = nn.Linear(embedding_dimension, vocab_size)
 
@@ -23,21 +23,21 @@ class SkipGram(nn.Module):
 		emb = self.embeddings(word)
 		skip_gram_logits = self.skip_gram(emb)
 
-		loss = skip_gram_loss(skip_gram_logits, context)
-		return loss
+		loss = self.skip_gram_loss(skip_gram_logits, context)
+		return loss, emb
 
 
 
 
 class ImageDecoder(nn.Module):
 
-	def __init__(self, embedding_dimension, image_dimension, meta_dimension, embedding_initialization):
+	def __init__(self, embedding_dimension, image_dimension, meta_dimension):
 
 		super(ImageDecoder, self).__init__()
 
 		# Input Embeddings
-		self.embeddings = nn.Embedding(vocab_size, embedding_dimension)
-		self.embeddings.weight.data.copy_(torch.from_numpy(embedding_initialization))
+# 		self.embeddings = nn.Embedding(vocab_size, embedding_dimension)
+# 		self.embeddings.weight.data.copy_(torch.from_numpy(embedding_initialization))
 		# Image Decoder
 		self.decode1 = nn.Linear(embedding_dimension, 512)
 		self.dropout12 = nn.Dropout(0.5)
@@ -48,9 +48,9 @@ class ImageDecoder(nn.Module):
 		# Meta Information Layer
 		self.meta = nn.Linear(embedding_dimension, meta_dimension)
 
-	def forward(self, word):
+	def forward(self,emb):
 
-		emb = self.embeddings(word)
+# 		emb = self.embeddings(word)
 		d = self.dropout12(F.relu(self.decode1(emb)))
 		d = self.dropout23(F.relu(self.decode2(d)))
 		d = F.relu(self.decode3(d))
@@ -73,7 +73,7 @@ class MultiTaskLossWrapper(nn.Module):
 
 		image_reconstruction_loss = nn.MSELoss()
 		meta_loss = nn.BCEWithLogitsLoss()
-
+        
 		loss0 = skip_gram_loss
 		loss1 = image_reconstruction_loss(pred_image, image)
 		loss2 = meta_loss(pred_meta, meta)
@@ -84,7 +84,8 @@ class MultiTaskLossWrapper(nn.Module):
 		loss1 = precision1*loss1 + self.log_vars[1]
 		precision2 = torch.exp(-self.log_vars[2])
 		loss2 = precision2*loss2 + self.log_vars[2]
-		return loss0+loss1+loss2
+# 		return loss0+loss1+loss2
+		return loss0, loss1
 
 
 
