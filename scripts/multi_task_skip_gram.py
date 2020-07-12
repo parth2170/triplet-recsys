@@ -10,22 +10,19 @@ class SkipGram(nn.Module):
 
 		super(SkipGram, self).__init__()
 
-		# Input Embeddings
-		self.embeddings = nn.Embedding(vocab_size, embedding_dimension)
-# 		self.embeddings.weight.data.copy_(torch.from_numpy(embedding_initialization))
-		# Skip-Gram Linear Layer
-		self.skip_gram = nn.Linear(embedding_dimension, vocab_size)
-
-		self.skip_gram_loss = nn.CrossEntropyLoss()
+		self.embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=True)   
+		self.context_embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=True)
 	
-	def forward(self, word, context):
+	def forward(self, word, context, batch_size):
+
+		embed_u = self.embeddings(word)
+		embed_v = self.context_embeddings(context)
+
+		score  = torch.mul(embed_u, embed_v)
+		score = torch.sum(score, dim=1)
+		log_target = F.logsigmoid(score).squeeze()
 		
-		emb = self.embeddings(word)
-		skip_gram_logits = self.skip_gram(emb)
-
-		loss = self.skip_gram_loss(skip_gram_logits, context)
-		return loss, emb
-
+		return -1*loss.sum()/batch_size, embed_u
 
 
 
