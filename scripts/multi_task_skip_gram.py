@@ -10,6 +10,7 @@ class SkipGram(nn.Module):
 
 		super(SkipGram, self).__init__()
 
+<<<<<<< HEAD
 		self.embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=True)   
 		self.context_embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=True)
 		initrange = (2.0 / (vocab_size + embedding_dimension)) ** 0.5  # Xavier init
@@ -17,14 +18,26 @@ class SkipGram(nn.Module):
 		self.context_embeddings.weight.data.uniform_(-0, 0)
         
 	def forward(self, word, context):
+=======
+		self.embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=False)   
+		self.context_embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=False)
+	
+	def forward(self, word, context, batch_size):
+>>>>>>> 0a25faa7a2ba90bf1f52e7c4aa600fa2fc3ada69
 
 		embed_u = self.embeddings(word)
 		embed_v = self.context_embeddings(context)
 
 		score  = torch.mul(embed_u, embed_v)
 		score = torch.sum(score, dim=1)
+<<<<<<< HEAD
 		log_target = F.logsigmoid(score).squeeze()
 		return -1*log_target.mean(), embed_u
+=======
+		loss = F.logsigmoid(score).squeeze()
+		
+		return -1*loss.sum()/batch_size, embed_u
+>>>>>>> 0a25faa7a2ba90bf1f52e7c4aa600fa2fc3ada69
 
 
 
@@ -84,7 +97,7 @@ class MultiTaskLossWrapper(nn.Module):
 		# precision2 = torch.exp(-self.log_vars[2])
 		# loss2 = precision2*loss2 + self.log_vars[2]
 		# return loss0+loss1+loss2
-		return loss0, loss1
+		return loss1 + loss0
 
 
 
