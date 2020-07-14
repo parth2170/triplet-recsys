@@ -12,8 +12,11 @@ class SkipGram(nn.Module):
 
 		self.embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=True)   
 		self.context_embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=True)
-	
-	def forward(self, word, context, batch_size):
+		initrange = (2.0 / (vocab_size + embedding_dimension)) ** 0.5  # Xavier init
+		self.embeddings.weight.data.uniform_(-initrange, initrange)
+		self.context_embeddings.weight.data.uniform_(-0, 0)
+        
+	def forward(self, word, context):
 
 		embed_u = self.embeddings(word)
 		embed_v = self.context_embeddings(context)
@@ -21,8 +24,7 @@ class SkipGram(nn.Module):
 		score  = torch.mul(embed_u, embed_v)
 		score = torch.sum(score, dim=1)
 		log_target = F.logsigmoid(score).squeeze()
-		
-		return -1*loss.sum()/batch_size, embed_u
+		return -1*log_target.mean(), embed_u
 
 
 
