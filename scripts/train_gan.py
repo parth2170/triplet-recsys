@@ -55,9 +55,9 @@ def train(category, weight):
 			image_model.cuda()
 			multi_task_model.cuda()
 
-	skip_optimizer = torch.optim.SparseAdam(skip_gram_model.parameters(), lr = 0.01)
+	skip_optimizer = torch.optim.SGD(skip_gram_model.parameters(), lr = 0.01)
 	skip_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(skip_optimizer, 'min', patience = 200, verbose = True)
-	image_optimizer = torch.optim.Adam(image_model.parameters(), lr = 0.01)
+	image_optimizer = torch.optim.SGD(image_model.parameters(), lr = 0.01)
 	image_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(image_optimizer, 'min', patience = 200, verbose = True)
 
 	print('\nStart Training\n')
@@ -109,12 +109,9 @@ def train(category, weight):
 				break
 			batch = np.array(batch)
 			words = Variable(torch.LongTensor(batch[:,0]))
-# 			print("words",words)            
 			context_words = Variable(torch.LongTensor(batch[:,1]))
-# 			print(context_words)           
 			if train_mode == 'prod':
 				image_batch = Variable(torch.FloatTensor(image_batch))
-				print("image_batch",np.sum(np.where(np.array(image_batch) == 0)))                
 				# meta_batch = Variable(torch.FloatTensor(meta_batch))
 
 			if torch.cuda.is_available():
@@ -124,28 +121,31 @@ def train(category, weight):
 					image_batch = image_batch.cuda()
 					# meta_batch = meta_batch.cuda()
 
-			skip_optimizer.zero_grad()
-			image_optimizer.zero_grad()
 
 			skip_gram_loss, skip_gram_emb = skip_gram_model(words, context_words)
-            
+			print(train_mode)
 			if train_mode == 'user':
+				skip_optimizer.zero_grad()                
 				skip_gram_loss.backward()
 				skip_optimizer.step()
 				skip_scheduler.step(skip_gram_loss)
 				# Copy the skip-gram embedding matrix to the ImageDecoder 
 				# image_model.embeddings.weight.data.copy_(skip_gram_model.embeddings.weight.data)
-				skip_optimizer.zero_grad()
+				
 
 			if train_mode == 'prod':
 				pred_image, pred_meta = image_model(skip_gram_emb)
 				skip_gram_emb_loss, image_loss = multi_task_model(skip_gram_loss, pred_image, image_batch, pred_meta, meta_batch)
-
+				skip_optimizer.zero_grad()           
+				skip_gram_emb_loss.backward()
+				skip_optimizer.step()
+				skip_scheduler.step(skip_gram_emb_loss)            
 				########################
-				image_loss.backward()
-				image_optimizer.step()
-				image_scheduler.step(image_loss)
-				image_optimizer.zero_grad()
+# 				image_optimizer.zero_grad()
+# 				image_loss.backward(retain_graph=True)
+# 				image_optimizer.step()
+# 				image_scheduler.step(image_loss)
+				
 				########################
 
 				# Copy the ImageDecoder embedding matrix to skip-gram
@@ -160,8 +160,8 @@ def train(category, weight):
 				start_b = time.time()
 			if batch_id % 25000 == 0:
 				print('Saving model and embeddings')
-				# torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, int(batch_id/25000)))
-				# get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/25000))
+				torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, int(batch_id/25000)))
+				get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/25000))
 
 		# print('epoch = {} batch = {} loss = {:.4f} time = {:.4f}'.format(epoch, batch_id, loss, end_e - start_b))
 		# print('Saving model and embeddings')
