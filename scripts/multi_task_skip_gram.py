@@ -10,8 +10,8 @@ class SkipGram(nn.Module):
 
 		super(SkipGram, self).__init__()
 
-		self.embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=True)   
-		self.context_embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=True)
+		self.embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=False)   
+		self.context_embeddings = nn.Embedding(vocab_size, embedding_dimension, sparse=False)
 	
 	def forward(self, word, context, batch_size):
 
@@ -20,7 +20,7 @@ class SkipGram(nn.Module):
 
 		score  = torch.mul(embed_u, embed_v)
 		score = torch.sum(score, dim=1)
-		log_target = F.logsigmoid(score).squeeze()
+		loss = F.logsigmoid(score).squeeze()
 		
 		return -1*loss.sum()/batch_size, embed_u
 
@@ -82,7 +82,7 @@ class MultiTaskLossWrapper(nn.Module):
 		# precision2 = torch.exp(-self.log_vars[2])
 		# loss2 = precision2*loss2 + self.log_vars[2]
 		# return loss0+loss1+loss2
-		return loss0, loss1
+		return loss1 + loss0
 
 
 
