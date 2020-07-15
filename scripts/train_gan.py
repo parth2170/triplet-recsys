@@ -24,7 +24,7 @@ def get_embeddings(model, reverse_encoded_vocab, epoch, batch_id):
 	for i in reverse_encoded_vocab:
 		final_layer_embeddings[reverse_encoded_vocab[i]] = embedding_matrix[i]
 	
-	with open('saved/imdb_embeddings_e-{}_b-{}_.pkl'.format(epoch, batch_id), 'wb') as file:
+	with open('../saved/amazon_embeddings_e-{}_b-{}_.pkl'.format(epoch, batch_id), 'wb') as file:
 		pickle.dump(final_layer_embeddings, file)
 
 def train(category, weight):
@@ -79,7 +79,6 @@ def train(category, weight):
 			if train_mode == 'prod':
 				image_batch, meta_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
 				image_batch = Variable(torch.FloatTensor(image_batch))
-				print("image_batch",np.sum(np.where(np.array(image_batch) == 0)))                
 				# meta_batch = Variable(torch.FloatTensor(meta_batch))
 
 			if torch.cuda.is_available():
@@ -115,11 +114,11 @@ def train(category, weight):
 				end_b = time.time()
 				print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.4f}\timage_loss = {:.4f}\ttime = {:.2f}'.format(epoch, batch_id, skip_gram_loss * 1e5, image_loss, end_b - start_b))
 				start_b = time.time()
-			if batch_id % 4000 == 0:
+			if batch_id % 10000 == 0:
 				print('Saving model and embeddings')
-				torch.save(image_model.state_dict(), 'saved/image_model.e-{}_b-{}_'.format(epoch, int(batch_id/4000)))
-				torch.save(skip_gram_model_model.state_dict(), 'saved/skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id/4000)))
-				get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/4000))
+				torch.save(image_model.state_dict(), '../saved/image_model.e-{}_b-{}_'.format(epoch, int(batch_id/10000)))
+				torch.save(skip_gram_model.state_dict(), '../saved/skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id/10000)))
+				get_embeddings(skip_gram_model, reverse_encoded_vocab, epoch, int(batch_id/10000))
 
 		end_e = time.time()
 		print('####################### EPOCH DONE ##########################')
