@@ -75,11 +75,7 @@ def train(category, weight):
 			words = Variable(torch.LongTensor(batch[:,0]))
 # 			print("words",words)            
 			context_words = Variable(torch.LongTensor(batch[:,1]))
-<<<<<<< HEAD
-# 			print(context_words)           
-=======
 
->>>>>>> 0a25faa7a2ba90bf1f52e7c4aa600fa2fc3ada69
 			if train_mode == 'prod':
 				image_batch, meta_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
 				image_batch = Variable(torch.FloatTensor(image_batch))
@@ -96,14 +92,9 @@ def train(category, weight):
 			skip_optimizer.zero_grad()
 			image_optimizer.zero_grad()
 
-<<<<<<< HEAD
-			skip_gram_loss, skip_gram_emb = skip_gram_model(words, context_words)
-            
-=======
+
 			skip_gram_loss, skip_gram_emb = skip_gram_model(words, context_words, batch_size)
 			skip_running_loss += skip_gram_loss
-
->>>>>>> 0a25faa7a2ba90bf1f52e7c4aa600fa2fc3ada69
 			if train_mode == 'user':
 				skip_gram_loss.backward()
 				skip_optimizer.step()
