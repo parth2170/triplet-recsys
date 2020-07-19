@@ -16,6 +16,8 @@ class SkipGram(nn.Module):
 		initrange = (2.0 / (vocab_size + embedding_dimension)) ** 0.5  # Xavier init
 		self.embeddings.weight.data.uniform_(-initrange, initrange)
 		self.context_embeddings.weight.data.uniform_(-0, 0)
+		self.embeddings.weight.requires_grad = True
+		self.context_embeddings.weight.requires_grad = True
         
 	def forward(self, word, context):
 
@@ -86,7 +88,7 @@ class MultiTaskLossWrapper(nn.Module):
 		# precision2 = torch.exp(-self.log_vars[2])
 		# loss2 = precision2*loss2 + self.log_vars[2]
 		# return loss0+loss1+loss2
-		return loss1 + loss0
+		return loss1
 
 
 

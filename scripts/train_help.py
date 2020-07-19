@@ -108,7 +108,8 @@ def gen(encoded_data, reverse_encoded_vocab, batch_size, p_u_ratio, user_dict, p
 		data_index += hop_size
 
 		if data_index >= (len(encoded_data) - window_size):
-			batch_id = 0
+			batch_id = 1
+			data_index = 0
 
 		if batch_id % p_u_ratio == 0:
 			train_mode = 'user'

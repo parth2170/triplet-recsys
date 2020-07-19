@@ -14,7 +14,7 @@ from multi_task_skip_gram import *
 
 def get_embeddings(model, reverse_encoded_vocab, epoch, batch_id):
 
-	embedding_matrix = model.embeddings.weight.data
+	embedding_matrix = model.embeddings.weight.data.clone()
 	if torch.cuda.is_available():
 		embedding_matrix = embedding_matrix.cpu()
 	embedding_matrix = embedding_matrix.numpy()
@@ -24,7 +24,7 @@ def get_embeddings(model, reverse_encoded_vocab, epoch, batch_id):
 	for i in reverse_encoded_vocab:
 		final_layer_embeddings[reverse_encoded_vocab[i]] = embedding_matrix[i]
 	
-	with open('saved/imdb_embeddings_e-{}_b-{}_.pkl'.format(epoch, batch_id), 'wb') as file:
+	with open('../saved/amazon_embeddings_e-{}_b-{}_.pkl'.format(epoch, batch_id), 'wb') as file:
 		pickle.dump(final_layer_embeddings, file)
 
 def train(category, weight):
@@ -58,75 +58,73 @@ def train(category, weight):
 	print('\nStart Training\n')
 
 	epoch_num = 5
-	batch_size = 256
+	batch_size = 512
 	Kill = True
 
 	p_u_ratio = int(len(prod_dict)/len(user_dict))
 	print('#products/#users = ', p_u_ratio)
 
-	for epoch in range(epoch_num):
-		start_e = time.time()
+	epoch = 0
+	for batch, batch_id, train_mode in gen(encoded_data, reverse_encoded_vocab, batch_size, p_u_ratio, user_dict, prod_dict):
+		if batch_id == 2:
+			print('Saving model and embeddings')
+			torch.save(image_model.state_dict(), '../saved/image_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(skip_gram_model.state_dict(), '../saved/skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			get_embeddings(skip_gram_model, reverse_encoded_vocab, epoch, int(batch_id))
+			epoch += 1
+
 		start_b = time.time()
-		skip_running_loss = 0
+		batch = np.array(batch)
+		words = Variable(torch.LongTensor(batch[:,0]))
+		context_words = Variable(torch.LongTensor(batch[:,1]))
 
-		for batch, batch_id, train_mode in gen(encoded_data, reverse_encoded_vocab, batch_size, p_u_ratio, user_dict, prod_dict):
+		retain = False
+		if train_mode == 'prod':
+			image_batch, meta_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
+			image_batch = Variable(torch.FloatTensor(image_batch))
+			# meta_batch = Variable(torch.FloatTensor(meta_batch))
+			retain = True
 
-			batch = np.array(batch)
-			words = Variable(torch.LongTensor(batch[:,0]))
-# 			print("words",words)            
-			context_words = Variable(torch.LongTensor(batch[:,1]))
-
+		if torch.cuda.is_available():
+			words = words.cuda()
+			context_words = context_words.cuda()
 			if train_mode == 'prod':
-				image_batch, meta_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
-				image_batch = Variable(torch.FloatTensor(image_batch))
-				print("image_batch",np.sum(np.where(np.array(image_batch) == 0)))                
-				# meta_batch = Variable(torch.FloatTensor(meta_batch))
+				image_batch = image_batch.cuda()
+				# meta_batch = meta_batch.cuda()
 
-			if torch.cuda.is_available():
-				words = words.cuda()
-				context_words = context_words.cuda()
-				if train_mode == 'prod':
-					image_batch = image_batch.cuda()
-					# meta_batch = meta_batch.cuda()
+		skip_optimizer.zero_grad()
+		image_optimizer.zero_grad()
 
-			skip_optimizer.zero_grad()
-			image_optimizer.zero_grad()
+		skip_gram_loss, skip_gram_emb = skip_gram_model(words, context_words)
+		skip_gram_loss.backward(retain_graph=retain)
+		skip_optimizer.step()
 
+		if train_mode == 'prod':
+			
+			pred_image, pred_meta = image_model(skip_gram_emb)
+			image_loss = multi_task_model(skip_gram_loss, pred_image, image_batch, pred_meta, meta_batch)
 
-			skip_gram_loss, skip_gram_emb = skip_gram_model(words, context_words, batch_size)
-			skip_running_loss += skip_gram_loss
-			if train_mode == 'user':
-				skip_gram_loss.backward()
-				skip_optimizer.step()
-				skip_scheduler.step(skip_gram_loss)
+			########################
+			image_loss.backward(retain_graph=False)
+			image_optimizer.step()
+			########################
 
-			if train_mode == 'prod':
-				pred_image, pred_meta = image_model(skip_gram_emb)
-				image_loss = multi_task_model(skip_gram_loss, pred_image, image_batch, pred_meta, meta_batch)
-
-				########################
-				image_loss.backward()
-				image_optimizer.step()
-				image_scheduler.step(image_loss)
-				########################
-
-			if batch_id % 100 == 0:
-				end_b = time.time()
-				print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.4f}\timage_loss = {:.4f}\ttime = {:.2f}'.format(epoch, batch_id, skip_gram_loss * 1e5, image_loss, end_b - start_b))
-				start_b = time.time()
-			if batch_id % 25000 == 0:
-				print('Saving model and embeddings')
-				# torch.save(model.state_dict(), 'saved/imdb_model.e-{}_b-{}_'.format(epoch, int(batch_id/25000)))
-				# get_embeddings(model, reverse_encoded_vocab, epoch, int(batch_id/25000))
-
-		end_e = time.time()
-		print('####################### EPOCH DONE ##########################')
-		print('epoch = {}\tbatch = {}\tskip_running_loss = {:.4f}\timage_loss = {:.4f}\ttime = {:.2f}'.format(epoch, batch_id, skip_running_loss, image_loss, end_e - start_e))
-
-	print("\nOptimization Finished")
+		if batch_id % 100 == 0:
+			end_b = time.time()
+			print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.5f}\t\timage_loss = {:.5f}\t\ttime = {:.2f}'.format(epoch, batch_id, skip_gram_loss, image_loss, end_b - start_b))
+			start_b = time.time()
+		if batch_id % 3000 == 0:
+			print('Saving model and embeddings')
+			torch.save(image_model.state_dict(), '../saved/image_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(skip_gram_model.state_dict(), '../saved/skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			get_embeddings(skip_gram_model, reverse_encoded_vocab, epoch, int(batch_id))
+		if epoch >= epoch_num:
+			print("\nOptimization Finished")
+			break
 	return model
 
 if __name__ == '__main__':
 	model = train("Men", True)
+
 
 

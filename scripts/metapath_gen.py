@@ -46,4 +46,4 @@ def main(dataset_name, weight):
 if __name__ == '__main__':
 	cats = ['Baby', 'Men', 'Women', 'Shoes']
 	for category in cats:
-		main(category, weight = False)
+		main(category, weight = True)
