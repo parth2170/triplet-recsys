@@ -101,7 +101,6 @@ def gen(encoded_data, reverse_encoded_vocab, batch_size, p_u_ratio, user_dict, p
 	batch = []
 
 	while((data_index < len(encoded_data) - window_size)):
-
 		window = encoded_data[data_index : data_index + window_size]
 		word = window[int(window_size/2)]
 		context_words = [window[j] for j in range(window_size) if j != int(window_size/2)]
@@ -133,6 +132,7 @@ def gen(encoded_data, reverse_encoded_vocab, batch_size, p_u_ratio, user_dict, p
 		if len(batch) == batch_size:
 			batch_id += 1
 			yield batch, batch_id, train_mode
+			batch = []
 
 
 
