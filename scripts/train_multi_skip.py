@@ -10,7 +10,7 @@ import pandas as pd
 from tqdm import tqdm
 from torch.autograd import Variable
 from train_help import *
-from multi_task_skip_gram import *
+from multi_task_models import *
 
 def get_embeddings(model, reverse_encoded_vocab, epoch, batch_id):
 
@@ -41,7 +41,7 @@ def train(category, weight):
 
 	skip_gram_model = SkipGram(vocab_size = total_words, embedding_dimension = embedding_dimension)
 	image_model = ImageDecoder(embedding_dimension = embedding_dimension, image_dimension = 4096, meta_dimension = len(all_meta_labels))
-	multi_task_model = MultiTaskLossWrapper(task_num = 2)
+	multi_task_model = MultiTaskLossWrapper(task_num = 3)
 
 
 	if torch.cuda.is_available():
@@ -50,9 +50,9 @@ def train(category, weight):
 			image_model.cuda()
 			multi_task_model.cuda()
 
-	skip_optimizer = torch.optim.SparseAdam(skip_gram_model.parameters(), lr = 0.01)
+	skip_optimizer = torch.optim.Adam(skip_gram_model.parameters(), lr = 0.01)
 	skip_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(skip_optimizer, 'min', patience = 200, verbose = True)
-	image_optimizer = torch.optim.Adam(image_model.parameters(), lr = 0.01)
+	image_optimizer = torch.optim.Adam(list(image_model.parameters()) + list(skip_gram_model.parameters()), lr = 0.01)
 	image_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(image_optimizer, 'min', patience = 200, verbose = True)
 
 	print('\nStart Training\n')
@@ -82,7 +82,7 @@ def train(category, weight):
 		if train_mode == 'prod':
 			image_batch, meta_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
 			image_batch = Variable(torch.FloatTensor(image_batch))
-			# meta_batch = Variable(torch.FloatTensor(meta_batch))
+			meta_batch = Variable(torch.FloatTensor(meta_batch))
 			retain = True
 
 		if torch.cuda.is_available():
@@ -90,28 +90,29 @@ def train(category, weight):
 			context_words = context_words.cuda()
 			if train_mode == 'prod':
 				image_batch = image_batch.cuda()
-				# meta_batch = meta_batch.cuda()
+				meta_batch = meta_batch.cuda()
 
 		skip_optimizer.zero_grad()
 		image_optimizer.zero_grad()
 
 		skip_gram_loss, skip_gram_emb = skip_gram_model(words, context_words)
-		skip_gram_loss.backward(retain_graph=retain)
-		skip_optimizer.step()
+
+		if train_mode == 'user':
+			skip_gram_loss.backward()
+			skip_optimizer.step()
 
 		if train_mode == 'prod':
-			
 			pred_image, pred_meta = image_model(skip_gram_emb)
-			image_loss = multi_task_model(skip_gram_loss, pred_image, image_batch, pred_meta, meta_batch)
+			image_loss, only_image, only_meta = multi_task_model(skip_gram_loss, pred_image, image_batch, pred_meta, meta_batch)
 
 			########################
-			image_loss.backward(retain_graph=False)
+			image_loss.backward()
 			image_optimizer.step()
 			########################
 
 		if batch_id % 100 == 0:
 			end_b = time.time()
-			print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.5f}\t\timage_loss = {:.5f}\t\ttime = {:.2f}'.format(epoch, batch_id, skip_gram_loss, image_loss, end_b - start_b))
+			print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.5f}\t\timage_loss = {:.5f}\t\tmeta_loss = {:.5f}\t\ttime = {:.2f}'.format(epoch, batch_id, skip_gram_loss, only_image, only_meta, end_b - start_b))
 			start_b = time.time()
 		if batch_id % 3000 == 0:
 			print('Saving model and embeddings')

@@ -27,14 +27,14 @@ def get_meta_data(prod_images, cold_images, category):
 				prod_images[pid]
 				tmp = []
 				for L in D['categories']:
-					tmp.extend([att for att in L if(att != dataset_name and att != 'Clothing, Shoes & Jewelry')])
+					tmp.extend([att for att in L])
 					prod_meta_info[pid] = list(set(tmp))
 			except:
 				pass
 			try:
 				cold_images[pid]
 				for L in D['categories']:
-					tmp.extend([att for att in L if(att != dataset_name and att != 'Clothing, Shoes & Jewelry')])
+					tmp.extend([att for att in L])
 					cold_meta_info[pid] = list(set(tmp))
 			except:
 				pass
@@ -45,11 +45,18 @@ def get_meta_data(prod_images, cold_images, category):
 			pickle.dump(cold_meta_info, file)
 	return prod_meta_info, cold_meta_info
 
+def normalize(x):
+	return ((x - np.min(x))/(np.max(x) - np.min(x)))
+
 def get_image_data(category):
 
 	print('Loading image features data')
 	prod_images = pickle.load(open('../saved/{}_prod_images.pkl'.format(category), 'rb'))
 	cold_images = pickle.load(open('../saved/{}_cold_images.pkl'.format(category), 'rb'))
+
+	prod_images = {pid:normalize(prod_images[pid]) for pid in prod_images}
+	cold_images = {pid:normalize(cold_images[pid]) for pid in cold_images}
+
 	prod_meta_info, cold_meta_info = get_meta_data(prod_images, cold_images, category)
 
 	all_meta_labels = [label for pid in prod_meta_info for label in prod_meta_info[pid] ]
@@ -223,6 +230,6 @@ def gen(encoded_data, reverse_encoded_vocab, batch_size, p_u_ratio, user_dict, p
 def generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab):
 	prods = [reverse_encoded_vocab[sample[0]] for sample in batch]
 	image_batch = np.array([prod_images[prod] for prod in prods])
-	# meta_batch = np.array([prod_meta_info[prod] for prod in prods])
-	return image_batch , 0#, meta_batch
+	meta_batch = np.array([prod_meta_info[prod] for prod in prods])
+	return image_batch, meta_batch
 
