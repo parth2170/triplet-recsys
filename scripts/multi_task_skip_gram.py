@@ -62,7 +62,32 @@ class ImageDecoder(nn.Module):
 
 		return d, m
 
-
+class Generator(nn.module):
+    def __init__(self, vocab_size, embedding_dimension, image_dimension, meta_dimension):
+        
+        super(Generator, self).__init__()
+        
+        self.skipgram = Skipgram(vocab_size, embedding_dimension)
+        self.imagedecoder = ImageDecoder(embedding_dimension, image_dimension, meta_dimension)
+        
+    def forward(self, word, context):
+        log_target_mean, embed_u = self.skipgram(word, context)
+        d, m = self.imagedecoder(emb)
+    
+class Discriminator(nn.module):
+    def __init__(self, latent_emb_size=4096):
+		self.decode1 = nn.Linear(latent_emb_size, 512)
+		self.dropout12 = nn.Dropout(0.5)
+		self.decode2 = nn.Linear(512, 32)
+		self.dropout23 = nn.Dropout(0.5)
+		self.decode3 = nn.Linear(32, 1)
+    
+    def forward(self, emb):
+        d = self.dropout12(self.decode1(emb))
+        d = self.dropout23(self.decode2(d))
+        d = F.sigmoid(self.decode3(d))
+        
+        return d
 
 class MultiTaskLossWrapper(nn.Module):
 	def __init__(self, task_num):
