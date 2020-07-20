@@ -38,10 +38,6 @@ class ImageDecoder(nn.Module):
 
 		super(ImageDecoder, self).__init__()
 
-		# Input Embeddings
-# 		self.embeddings = nn.Embedding(vocab_size, embedding_dimension)
-# 		self.embeddings.weight.data.copy_(torch.from_numpy(embedding_initialization))
-		# Image Decoder
 		self.decode1 = nn.Linear(embedding_dimension, 256)
 		self.dropout12 = nn.Dropout(0.5)
 		self.decode2 = nn.Linear(256, 512)
@@ -51,8 +47,6 @@ class ImageDecoder(nn.Module):
 		self.decode4 = nn.Linear(1024, 2048)
 		self.dropout45 = nn.Dropout(0.5)
 		self.decode5 = nn.Linear(2048, image_dimension)
-		# Meta Information Layer
-		self.meta = nn.Linear(embedding_dimension, meta_dimension)
 
 	def forward(self,emb):
 
@@ -61,15 +55,12 @@ class ImageDecoder(nn.Module):
 		d = self.dropout34(F.relu(self.decode3(d)))
 		d = self.dropout45(F.relu(self.decode4(d)))
 		d = F.relu(self.decode5(d))
-
-		m = F.sigmoid(self.meta(emb))
-
-		return d, m
+		return d
 
 
 
 class MultiTaskLossWrapper(nn.Module):
-	def __init__(self, task_num):
+	def __init__(self, task_num = 2):
 
 		super(MultiTaskLossWrapper, self).__init__()
 		
@@ -79,19 +70,15 @@ class MultiTaskLossWrapper(nn.Module):
 	def forward(self, skip_gram_loss, pred_image, image, pred_meta, meta):
 
 		image_reconstruction_loss = nn.MSELoss()
-		meta_loss = nn.BCEWithLogitsLoss()
         
 		loss0 = skip_gram_loss
 		loss1 = image_reconstruction_loss(pred_image, image)
-		loss2 = meta_loss(pred_meta, meta)
 
 		precision0 = torch.exp(-self.log_vars[0])
 		loss0 = precision0*loss0 + self.log_vars[0]
 		precision1 = torch.exp(-self.log_vars[1])
 		loss1 = precision1*loss1 + self.log_vars[1]
-		precision2 = torch.exp(-self.log_vars[2])
-		loss2 = precision2*loss2 + self.log_vars[2]
-		return (loss2 + loss1 + loss0), loss1, loss2
+		return (loss1 + loss0), loss1
 
 
 
