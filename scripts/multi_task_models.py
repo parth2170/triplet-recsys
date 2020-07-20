@@ -67,7 +67,7 @@ class MultiTaskLossWrapper(nn.Module):
 		self.task_num = task_num
 		self.log_vars = nn.Parameter(torch.zeros((task_num)))
 
-	def forward(self, skip_gram_loss, pred_image, image, pred_meta, meta):
+	def forward(self, skip_gram_loss, pred_image, image):
 
 		image_reconstruction_loss = nn.MSELoss()
         

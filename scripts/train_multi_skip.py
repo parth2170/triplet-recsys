@@ -78,7 +78,7 @@ def train(category, weight):
 
 		retain = False
 		if train_mode == 'prod':
-			image_batch = generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab)
+			image_batch = generate_image_batch(batch, prod_images, reverse_encoded_vocab)
 			image_batch = Variable(torch.FloatTensor(image_batch))
 			retain = True
 
@@ -99,7 +99,7 @@ def train(category, weight):
 
 		if train_mode == 'prod':
 			pred_image = image_model(skip_gram_emb)
-			image_loss, only_image = multi_task_model(skip_gram_loss, pred_image, pred_meta, meta_batch)
+			image_loss, only_image = multi_task_model(skip_gram_loss, pred_image, image_batch)
 
 			########################
 			image_loss.backward()
