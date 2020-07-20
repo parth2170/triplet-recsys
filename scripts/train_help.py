@@ -97,7 +97,7 @@ def gen(encoded_data, reverse_encoded_vocab, batch_size, p_u_ratio, user_dict, p
 			yield batch, batch_id, train_mode
 			batch = []
 
-def generate_image_batch(batch, prod_images, prod_meta_info, reverse_encoded_vocab):
+def generate_image_batch(batch, prod_images, reverse_encoded_vocab):
 	prods = [reverse_encoded_vocab[sample[0]] for sample in batch]
 	image_batch = np.array([prod_images[prod] for prod in prods])
 	return image_batch

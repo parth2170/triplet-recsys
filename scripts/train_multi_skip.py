@@ -99,7 +99,7 @@ def train(category, weight):
 
 		if train_mode == 'prod':
 			pred_image = image_model(skip_gram_emb)
-			image_loss, only_image = multi_task_model(skip_gram_loss, pred_image, image_batch, pred_meta, meta_batch)
+			image_loss, only_image = multi_task_model(skip_gram_loss, pred_image, pred_meta, meta_batch)
 
 			########################
 			image_loss.backward()
