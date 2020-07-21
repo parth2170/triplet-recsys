@@ -65,8 +65,8 @@ class Discriminator(nn.Module):
 		self.decode3 = nn.Linear(32, 1)
 
 	def forward(self, emb):
-		d = self.dropout12(self.decode1(emb))
-		d = self.dropout23(self.decode2(d))
+		d = self.dropout12(F.relu(self.decode1(emb)))
+		d = self.dropout23(F.relu(self.decode2(d)))
 		d = F.sigmoid(self.decode3(d))
 		return d
 

@@ -54,7 +54,7 @@ def train(category, weight):
 			discriminator.cuda()
 
 	skip_optimizer = torch.optim.Adam(skip_gram_model.parameters(), lr = 0.01)
-	gen_optimizer = torch.optim.Adam(list(image_model.parameters()) + list(skip_gram_model.parameters()) + list(generator.parameters()), lr = 0.01)
+	gen_optimizer = torch.optim.Adam(list(image_model.parameters()) + list(skip_gram_model.parameters()), lr = 0.01)
 	disc_optimizer = torch.optim.Adam(discriminator.parameters(), lr = 0.01)
 
 
@@ -68,6 +68,7 @@ def train(category, weight):
 	print('#products/#users = ', p_u_ratio)
 
 	criterion = nn.BCELoss()
+	image_loss = nn.MSELoss(reduction = 'mean')
 	real_label = 1
 	fake_label = 0
 
@@ -119,7 +120,6 @@ def train(category, weight):
 			# get predicted image from generator
 			label.fill_(fake_label)
 			pred_image = image_model(skip_gram_emb)
-
 			# pass predicted image through discriminator
 			output = discriminator(pred_image.detach()).view(-1)
 			errD_fake = criterion(output, label)
@@ -129,23 +129,24 @@ def train(category, weight):
 			errD = errD_real + errD_fake
 			disc_optimizer.step()
 
-			
 			gen_optimizer.zero_grad()
 			# update generator
 			label.fill_(real_label)
 			output = discriminator(pred_image).view(-1)
 			disc_err_for_gen = criterion(output, label)
 			# add skip gram loss to generator in multitask fashion
-			multi_gen_loss, only_gen_loss = generator(skip_gram_loss, disc_err_for_gen)
-			multi_gen_loss.backward()
-
-			D_G_z2 = output.mean().item()
+			# multi_gen_loss, only_gen_loss = generator(skip_gram_loss, disc_err_for_gen)
+			# multi_gen_loss.backward()
+			imgloss = image_loss(pred_image, image_batch)
+			gen_loss = disc_err_for_gen * 1e-2 + imgloss * 100 + skip_gram_loss
+			gen_loss.backward()
+			# D_G_z2 = output.mean().item()
 			# Update G
 			gen_optimizer.step()
 
 		if batch_id % 100 == 0:
 			end_b = time.time()
-			print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.5f}\t\tdisc_loss = {:.5f}\t\tmulti_gen_loss = {:.5f}'.format(epoch, batch_id, skip_gram_loss, errD, multi_gen_loss))
+			print('epoch = {}\tbatch = {}\tskip_gram_loss = {:.5f}\t\tdisc_loss = {:.5f}\t\tgen_loss = {:.7f}\t\timage_loss = {:.4f}'.format(epoch, batch_id, skip_gram_loss, errD, disc_err_for_gen, imgloss))
 			start_b = time.time()
 		if batch_id % 3000 == 0:
 			print('Saving model and embeddings')
