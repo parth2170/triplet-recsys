@@ -34,7 +34,7 @@ class SkipGram(nn.Module):
 
 class ImageDecoder(nn.Module):
 
-	def __init__(self, embedding_dimension, image_dimension, meta_dimension):
+	def __init__(self, embedding_dimension, image_dimension):
 
 		super(ImageDecoder, self).__init__()
 

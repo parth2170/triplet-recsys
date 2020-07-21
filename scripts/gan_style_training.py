@@ -45,7 +45,7 @@ def train(category, weight):
 	generator = MultiTaskLossWrapperGenerator(task_num = 2)
 	discriminator = Discriminator(latent_emb_size=4096)
 
-	device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
+	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	if torch.cuda.is_available():
 			print('!!GPU!!')
 			skip_gram_model.cuda()
@@ -54,7 +54,7 @@ def train(category, weight):
 			discriminator.cuda()
 
 	skip_optimizer = torch.optim.Adam(skip_gram_model.parameters(), lr = 0.01)
-	gen_optimizer = torch.optim.Adam(list(image_model.parameters()) + list(skip_gram_model.parameters() + list(MultiTaskLossWrapperGenerator.parameters())), lr = 0.01)
+	gen_optimizer = torch.optim.Adam(list(image_model.parameters()) + list(skip_gram_model.parameters()) + list(generator.parameters()), lr = 0.01)
 	disc_optimizer = torch.optim.Adam(discriminator.parameters(), lr = 0.01)
 
 
@@ -118,10 +118,10 @@ def train(category, weight):
 
 			# get predicted image from generator
 			label.fill_(fake_label)
-			pred_image = image_model(skip_gram_emb).view(-1)
+			pred_image = image_model(skip_gram_emb)
 
 			# pass predicted image through discriminator
-			output = netD(pred_image.detach()).view(-1)
+			output = discriminator(pred_image.detach()).view(-1)
 			errD_fake = criterion(output, label)
 			errD_fake.backward()
 			D_G_z1 = output.mean().item()
@@ -133,7 +133,7 @@ def train(category, weight):
 			gen_optimizer.zero_grad()
 			# update generator
 			label.fill_(real_label)
-			output = netD(pred_image).view(-1)
+			output = discriminator(pred_image).view(-1)
 			disc_err_for_gen = criterion(output, label)
 			# add skip gram loss to generator in multitask fashion
 			multi_gen_loss, only_gen_loss = generator(skip_gram_loss, disc_err_for_gen)

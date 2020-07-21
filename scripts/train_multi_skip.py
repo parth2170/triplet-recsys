@@ -51,7 +51,7 @@ def train(category, weight):
 			multi_task_model.cuda()
 
 	skip_optimizer = torch.optim.Adam(skip_gram_model.parameters(), lr = 0.01)
-	image_optimizer = torch.optim.Adam(list(image_model.parameters()) + list(skip_gram_model.parameters()), lr = 0.01)
+	image_optimizer = torch.optim.Adam(list(image_model.parameters()) + list(skip_gram_model.parameters()) + list(multi_task_model.parameters()), lr = 0.01)
 
 	print('\nStart Training\n')
 

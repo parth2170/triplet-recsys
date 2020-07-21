@@ -55,8 +55,9 @@ class ImageDecoder(nn.Module):
 		return d
 
 
-class Discriminator(nn.module):
+class Discriminator(nn.Module):
 	def __init__(self, latent_emb_size=4096):
+		super(Discriminator, self).__init__()
 		self.decode1 = nn.Linear(latent_emb_size, 512)
 		self.dropout12 = nn.Dropout(0.5)
 		self.decode2 = nn.Linear(512, 32)
