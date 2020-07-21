@@ -39,8 +39,8 @@ def train(category, weight):
 	embedding_dimension = 100
 	#################################
 
-	skip_gram_model = SkipGram(vocab_size = total_words, embedding_dimension = embedding_dimension)
-	image_model = ImageDecoder(embedding_dimension = embedding_dimension, image_dimension = 4096, meta_dimension = len(all_meta_labels))
+# 	skip_gram_model = SkipGram(vocab_size = total_words, embedding_dimension = embedding_dimension)
+# 	image_model = ImageDecoder(embedding_dimension = embedding_dimension, image_dimension = 4096, meta_dimension = len(all_meta_labels))
 	multi_task_model = MultiTaskLossWrapper(task_num = 2)
 
 
