@@ -34,7 +34,7 @@ class SkipGram(nn.Module):
 
 class ImageDecoder(nn.Module):
 
-	def __init__(self, embedding_dimension, image_dimension, meta_dimension):
+	def __init__(self, embedding_dimension, image_dimension):
 
 		super(ImageDecoder, self).__init__()
 
@@ -62,7 +62,7 @@ class ImageDecoder(nn.Module):
 
 		return d, m
 
-    
+
 class Generator(nn.module):
     def __init__(self, vocab_size, embedding_dimension, image_dimension, meta_dimension):
         
@@ -89,6 +89,7 @@ class Discriminator(nn.module):
         d = F.sigmoid(self.decode3(d))
         
         return d
+
     
 class MultiTaskLossWrapper(nn.Module):
 	def __init__(self, task_num):
