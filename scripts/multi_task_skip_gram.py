@@ -62,6 +62,7 @@ class ImageDecoder(nn.Module):
 
 		return d, m
 
+
 class Generator(nn.module):
     def __init__(self, vocab_size, embedding_dimension, image_dimension, meta_dimension):
         
@@ -89,6 +90,7 @@ class Discriminator(nn.module):
         
         return d
 
+    
 class MultiTaskLossWrapper(nn.Module):
 	def __init__(self, task_num):
 
