@@ -71,17 +71,18 @@ def get_review_data(review_file_path, prod_categories, category):
 			pass
 	return pd.DataFrame(data)
 
-def get_image_data(user_dict, prod_dict, cold_start, image_path, category, logfile):
+def get_image_data(train_prod_dict, test_prod_dict, cold_start, image_path, category, logfile):
 
 	# Read image files
 	cold_images = {}
-	prod_images = {}
+	train_prod_images = {}
+	test_prod_images = {}
 	try:
 		for pid, image in tqdm(readImageFeatures(image_path)):
 			pid = pid.decode('ascii')
 			try:
-				tmp = prod_dict[pid]
-				prod_images[pid] = image
+				tmp = train_prod_dict[pid]
+				train_prod_images[pid] = image
 			except:
 				pass
 			try:
@@ -89,15 +90,22 @@ def get_image_data(user_dict, prod_dict, cold_start, image_path, category, logfi
 				cold_images[pid] = image
 			except:
 				pass
+			try:
+				tmp = test_prod_dict[pid]
+				test_prod_images[pid] = image
+			except:
+				pass
 	except EOFError:
 		print('File Read')
 	
 	with open('../saved/{}_cold_images.pkl'.format(category), 'wb') as file:
 		pickle.dump(cold_images, file)
-	with open('../saved/{}_prod_images.pkl'.format(category), 'wb') as file:
-		pickle.dump(prod_images, file)
+	with open('../saved/{}_train_prod_images.pkl'.format(category), 'wb') as file:
+		pickle.dump(train_prod_images, file)
+	with open('../saved/{}_test_prod_images.pkl'.format(category), 'wb') as file:
+		pickle.dump(test_prod_images, file)
 
-	return prod_images, cold_images
+	return train_prod_images, test_prod_images, cold_images
 
 
 def temp_read(review_file_path, prod_categories, category, logfile):
@@ -111,7 +119,8 @@ def temp_read(review_file_path, prod_categories, category, logfile):
 	user_dict = {}
 
 	# Remove users with less than Q review
-	Q = 2 if category == 'Baby' else 6
+	Q = 2 if category == 'Baby' else 5
+	Q = 7 if category == 'Women'
 	for user in user_dict_p:
 		if len(user_dict_p[user]) < Q:
 			continue
@@ -136,6 +145,27 @@ def Helper(cold_start, new_user_dict):
 			except:
 				n += 1
 	return n, tot
+
+def train_test_split(prod_dict, user_dict, logfile):
+	# Keep one product for testing and rest for training for each user
+	train_user_dict, test_user_dict = {}, {}
+	random.seed(7)
+	for user in user_dict:
+		prods = user_dict[user]
+		test_sample = random.choice(prods)
+		test_user_dict[user] = test_sample
+		prods.remove(test_sample)
+		train_user_dict = prods
+
+	test_prod_dict = reverse_(test_user_dict)
+	train_prod_dict = reverse_(train_user_dict)
+
+	logfile.write('#users in train set = {}\n'.format(len(train_user_dict)))
+	logfile.write('#users in test set = {}\n'.format(len(test_user_dict)))
+	logfile.write('#products in train set = {}\n'.format(len(train_prod_dict)))
+	logfile.write('#products in test set = {}\n'.format(len(test_prod_dict)))
+	return train_user_dict, train_prod_dict, test_user_dict, test_prod_dict
+
 
 def remove_cold_start(prod_dict, user_dict, logfile):
 	random.seed(7)
@@ -176,27 +206,35 @@ def main(review_file_path, image_path, prod_categories, category):
 	# Read reviews
 	user_dict, prod_dict = temp_read(review_file_path, prod_categories, category, logfile)
 
+	# Test-Train Split
+	train_user_dict, train_prod_dict, test_user_dict, test_prod_dict = train_test_split(prod_dict, user_dict, logfile)
+
 	# Remove some products for cold start testing
-	cold_start, prod_dict, user_dict = remove_cold_start(prod_dict, user_dict, logfile)
+	cold_start, train_prod_dict, train_user_dict = remove_cold_start(train_prod_dict, train_user_dict, logfile)
 
 	# Read images
-	prod_images, cold_images = get_image_data(user_dict, prod_dict, cold_start, image_path, category, logfile)
+	train_prod_images, test_prod_images, cold_images = get_image_data(train_prod_dict, test_prod_dict, cold_start, image_path, category, logfile)
 
 	# Remove products whose images are not present
-	cold_start, user_dict, prod_dict = refine(user_dict, prod_dict, cold_start, prod_images, cold_images, category)
+	cold_start, train_user_dict, train_prod_dict = refine(train_user_dict, train_prod_dict, cold_start, train_prod_images, cold_images, category)
 
 	with open('../saved/{}_cold_start.pkl'.format(category), 'wb') as file:
 		pickle.dump(cold_start, file)
-	with open('../saved/{}_user_dict.pkl'.format(category), 'wb') as file:
-		pickle.dump(user_dict, file)
-	with open('../saved/{}_prod_dict.pkl'.format(category), 'wb') as file:
-		pickle.dump(prod_dict, file)
+	with open('../saved/{}_train_user_dict.pkl'.format(category), 'wb') as file:
+		pickle.dump(train_user_dict, file)
+	with open('../saved/{}_train_prod_dict.pkl'.format(category), 'wb') as file:
+		pickle.dump(train_prod_dict, file)
+	with open('../saved/{}_test_user_dict.pkl'.format(category), 'wb') as file:
+		pickle.dump(test_user_dict, file)
+	with open('../saved/{}_test_prod_dict.pkl'.format(category), 'wb') as file:
+		pickle.dump(test_prod_dict, file)
 	
 	end = time.time()
 	elapsed = end - start
 
 	logfile.write('\nFinal stats after removing missing image files:\n')
-	logfile.write('#users = {}\n #products = {}\n #cold_start = {}\n'.format(len(user_dict), len(prod_dict), len(cold_start)))
+	logfile.write('#train users = {}\n #train products = {}\n #cold_start = {}\n'.format(len(train_user_dict), len(train_prod_dict), len(cold_start)))
+	logfile.write('#test users = {}\n #test products = {}\n'.format(len(test_user_dict), len(test_prod_dict)))
 	logfile.write('\nTime taken for reading data = {:.4f} sec\n'.format(elapsed))
 	logfile.close()
 
