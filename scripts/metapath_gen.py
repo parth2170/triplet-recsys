@@ -33,8 +33,8 @@ def metapaths_gen(user_dict, prod_dict, dataset_name, numwalks = 20, walklength 
 	outfile.close()
 
 def main(dataset_name, weight):
-	user_dict = pickle.load(open('../saved/{}_user_dict.pkl'.format(dataset_name), 'rb'))
-	prod_dict = pickle.load(open('../saved/{}_prod_dict.pkl'.format(dataset_name), 'rb'))
+	user_dict = pickle.load(open('../saved/{}_train_user_dict.pkl'.format(dataset_name), 'rb'))
+	prod_dict = pickle.load(open('../saved/{}_train_prod_dict.pkl'.format(dataset_name), 'rb'))
 	start = time.time()
 	metapaths_gen(user_dict, prod_dict, dataset_name, weight = weight)
 	end = time.time()
@@ -44,6 +44,6 @@ def main(dataset_name, weight):
 		logfile.write('\nTime taken for generating metapaths = {:.4f} sec\n'.format(elapsed))
 
 if __name__ == '__main__':
-	cats = ['Baby', 'Men', 'Women', 'Shoes']
+	cats = ['Men', 'Women', 'Shoes']
 	for category in cats:
 		main(category, weight = True)

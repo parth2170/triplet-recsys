@@ -119,8 +119,7 @@ def temp_read(review_file_path, prod_categories, category, logfile):
 	user_dict = {}
 
 	# Remove users with less than Q review
-	Q = 2 if category == 'Baby' else 5
-	Q = 7 if category == 'Women'
+	Q = 9 if category == 'Women' else 5
 	for user in user_dict_p:
 		if len(user_dict_p[user]) < Q:
 			continue
@@ -152,11 +151,12 @@ def train_test_split(prod_dict, user_dict, logfile):
 	random.seed(7)
 	for user in user_dict:
 		prods = user_dict[user]
+		if len(prods) < 5:
+			continue
 		test_sample = random.choice(prods)
-		test_user_dict[user] = test_sample
+		test_user_dict[user] = [test_sample]
 		prods.remove(test_sample)
-		train_user_dict = prods
-
+		train_user_dict[user] = prods
 	test_prod_dict = reverse_(test_user_dict)
 	train_prod_dict = reverse_(train_user_dict)
 
@@ -240,7 +240,7 @@ def main(review_file_path, image_path, prod_categories, category):
 
 if __name__ == '__main__':
 
-	cats = ['Baby', 'Men', 'Women', 'Shoes']
+	cats = ['Women', 'Men', 'Shoes']
 
 	review_file_path = '../raw_data/reviews_Clothing_Shoes_and_Jewelry.json'
 	image_path = '../raw_data/image_features_Clothing_Shoes_and_Jewelry.b'

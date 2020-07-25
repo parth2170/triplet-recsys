@@ -24,12 +24,12 @@ def get_embeddings(model, reverse_encoded_vocab, epoch, batch_id):
 	for i in reverse_encoded_vocab:
 		final_layer_embeddings[reverse_encoded_vocab[i]] = embedding_matrix[i]
 	
-	with open('../saved/GAN_embeddings_e-{}_b-{}_.pkl'.format(epoch, batch_id), 'wb') as file:
+	with open('../embeddings_models/GAN_embeddings_e-{}_b-{}_.pkl'.format(epoch, batch_id), 'wb') as file:
 		pickle.dump(final_layer_embeddings, file)
 
 def train(category, weight):
 
-	prod_images, _ = get_image_data(category)
+	prod_images = get_image_data(category)
 	encoded_data, encoded_vocab, reverse_encoded_vocab, user_dict, prod_dict = encode(category, weight)
 	
 	total_words = len(encoded_vocab)
@@ -76,8 +76,8 @@ def train(category, weight):
 	for batch, batch_id, train_mode in gen(encoded_data, reverse_encoded_vocab, batch_size, p_u_ratio, user_dict, prod_dict):
 		if batch_id == 2:
 			print('Saving model and embeddings')
-			torch.save(image_model.state_dict(), '../saved/image_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
-			torch.save(skip_gram_model.state_dict(), '../saved/skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(image_model.state_dict(), '../embeddings_models/image_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(skip_gram_model.state_dict(), '../embeddings_models/skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
 			get_embeddings(skip_gram_model, reverse_encoded_vocab, epoch, int(batch_id))
 			epoch += 1
 
@@ -138,7 +138,7 @@ def train(category, weight):
 			# multi_gen_loss, only_gen_loss = generator(skip_gram_loss, disc_err_for_gen)
 			# multi_gen_loss.backward()
 			imgloss = image_loss(pred_image, image_batch)
-			gen_loss = disc_err_for_gen * 1e-2 + imgloss * 100 + skip_gram_loss
+			gen_loss = disc_err_for_gen + imgloss * 1e3 + skip_gram_loss * 1e2
 			gen_loss.backward()
 			# D_G_z2 = output.mean().item()
 			# Update G
@@ -150,8 +150,8 @@ def train(category, weight):
 			start_b = time.time()
 		if batch_id % 3000 == 0:
 			print('Saving model and embeddings')
-			torch.save(image_model.state_dict(), '../saved/image_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
-			torch.save(skip_gram_model.state_dict(), '../saved/skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(image_model.state_dict(), '../embeddings_models/image_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(skip_gram_model.state_dict(), '../embeddings_models/skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
 			get_embeddings(skip_gram_model, reverse_encoded_vocab, epoch, int(batch_id))
 		if epoch >= epoch_num:
 			print("\nOptimization Finished")

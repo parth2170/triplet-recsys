@@ -1,27 +1,23 @@
 Raw #users = 1091896
-#users with > 1 interactions = 13536
-#corresponding prods = 65287
+#users with > 1 interactions = 22067
+#corresponding prods = 77873
+#users in train set = 22066
+#users in test set = 22066
+#products in train set = 71269
+#products in test set = 16896
 #cold start products = 50
-#users in cold products = 1059
+#users in cold products = 1063
 #users in cold products who are not present in user_dict = 0
-#users after removing Cold Start Products = 13536
-#products after removing Cold Start Products = 65237
+#users after removing Cold Start Products = 22066
+#products after removing Cold Start Products = 71219
 
 Final stats after removing missing image files:
-#users = 13536
- #products = 64790
+#train users = 22066
+ #train products = 70722
  #cold_start = 50
+#test users = 22066
+ #test products = 16896
 
-Time taken for reading data = 394.0724 sec
+Time taken for reading data = 408.9252 sec
 
-Time taken for generating metapaths = 0.0070 sec
-
-Time taken for generating metapaths = 0.0526 sec
-
-Time taken for generating metapaths = 0.0070 sec
-
-Time taken for generating metapaths = 0.0069 sec
-
-Time taken for generating metapaths = 0.0070 sec
-
-Time taken for generating metapaths = 51.2716 sec
+Time taken for generating metapaths = 263.4417 sec
