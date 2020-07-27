@@ -17,17 +17,17 @@ def normalize(x):
 def get_image_data(category):
 
 	print('Loading image features data')
-	prod_images = pickle.load(open('../saved/{}_prod_images.pkl'.format(category), 'rb'))
-	cold_images = pickle.load(open('../saved/{}_cold_images.pkl'.format(category), 'rb'))
+	prod_images = pickle.load(open('../saved/{}_train_prod_images.pkl'.format(category), 'rb'))
+	# cold_images = pickle.load(open('../saved/{}_cold_images.pkl'.format(category), 'rb'))
 
 	prod_images = {pid:normalize(prod_images[pid]) for pid in prod_images}
-	cold_images = {pid:normalize(cold_images[pid]) for pid in cold_images}
+	# cold_images = {pid:normalize(cold_images[pid]) for pid in cold_images}
 
-	return prod_images, cold_images
+	return prod_images
 
 def encode(category, weight):
-	user_dict = pickle.load(open('../saved/{}_user_dict.pkl'.format(category), 'rb'))
-	prod_dict = pickle.load(open('../saved/{}_prod_dict.pkl'.format(category), 'rb'))
+	user_dict = pickle.load(open('../saved/{}_train_user_dict.pkl'.format(category), 'rb'))
+	prod_dict = pickle.load(open('../saved/{}_train_prod_dict.pkl'.format(category), 'rb'))
 
 	vocab = list(user_dict.keys())
 	vocab.extend(list(prod_dict.keys()))

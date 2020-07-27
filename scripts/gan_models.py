@@ -36,21 +36,21 @@ class ImageDecoder(nn.Module):
 		super(ImageDecoder, self).__init__()
 
 		self.decode1 = nn.Linear(embedding_dimension, 256)
-		self.dropout12 = nn.Dropout(0.5)
+		# self.dropout12 = nn.Dropout(0.5)
 		self.decode2 = nn.Linear(256, 512)
-		self.dropout23 = nn.Dropout(0.5)
+		# self.dropout23 = nn.Dropout(0.5)
 		self.decode3 = nn.Linear(512, 1024)
-		self.dropout34 = nn.Dropout(0.5)
+		# self.dropout34 = nn.Dropout(0.5)
 		self.decode4 = nn.Linear(1024, 2048)
-		self.dropout45 = nn.Dropout(0.5)
+		# self.dropout45 = nn.Dropout(0.5)
 		self.decode5 = nn.Linear(2048, image_dimension)
 
 	def forward(self,emb):
 
-		d = self.dropout12(F.relu(self.decode1(emb)))
-		d = self.dropout23(F.relu(self.decode2(d)))
-		d = self.dropout34(F.relu(self.decode3(d)))
-		d = self.dropout45(F.relu(self.decode4(d)))
+		d = F.relu(self.decode1(emb))
+		d = F.relu(self.decode2(d))
+		d = F.relu(self.decode3(d))
+		d = F.relu(self.decode4(d))
 		d = F.relu(self.decode5(d))
 		return d
 
