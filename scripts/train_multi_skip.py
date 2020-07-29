@@ -12,7 +12,11 @@ from torch.autograd import Variable
 from train_help import *
 from multi_task_models import *
 import torch
+import yaml
 
+with open("./config.yaml") as file:
+	config = yaml.load(file)
+    
 class AddGaussianNoise(object):
 	def __init__(self, mean=0., std=1.):
 		self.std = std
@@ -36,25 +40,26 @@ def get_embeddings(model, reverse_encoded_vocab, epoch, batch_id):
 	for i in reverse_encoded_vocab:
 		final_layer_embeddings[reverse_encoded_vocab[i]] = embedding_matrix[i]
 	
-	with open('../saved/amazon_embeddings_load_decoder_e-{}_b-{}_.pkl'.format(epoch, batch_id), 'wb') as file:
+	with open('../saved/amazon_embeddings_'+config["model_name"]+'_e-{}_b-{}_.pkl'.format(epoch, batch_id), 'wb') as file:
 		pickle.dump(final_layer_embeddings, file)
 
-def train(category, weight,load_saved_decoder=True):
-    
+def train():
+	category = config["category"]
 	gaussian = AddGaussianNoise()
-	prod_images, _ = get_image_data(category)
-	encoded_data, encoded_vocab, reverse_encoded_vocab, user_dict, prod_dict = encode(category, weight)
+	prod_images = get_image_data(category)
+	encoded_data, encoded_vocab, reverse_encoded_vocab, user_dict, prod_dict = encode(category, bool(config["weights"]))
 	
 	total_words = len(encoded_vocab)
 	print('\nVocabulary size = ', total_words)
 
 	## Declare embedding dimension ##
-	embedding_dimension = 100
+	embedding_dimension = config["embedding_dim"]
 	#################################
-	if (load_saved_decoder):
-		skip_gram_model = SkipGram2(len(encoded_vocab),100,encoded_vocab,prod_images,4096,"../saved/ae_encoder.e-0")
+	if (bool(config["load_saved_decoder"])):
+		skip_gram_model = SkipGram2(len(encoded_vocab),config["embedding_dim"],encoded_vocab,prod_images,4096,
+                                    '../saved/'+config["model_name"]+'_ae_encoder.e-0')
 		image_model = ImageDecoder(embedding_dimension = embedding_dimension, image_dimension = 4096)
-		image_model.load_state_dict(torch.load("../saved/ae_decoder.e-0"))
+		image_model.load_state_dict(torch.load('../saved/'+config["model_name"]+'_ae_decoder.e-0'))
 		multi_task_model = MultiTaskLossWrapper(task_num = 2)
 	else:
 		skip_gram_model = SkipGram(vocab_size = total_words, embedding_dimension = embedding_dimension)
@@ -73,8 +78,8 @@ def train(category, weight,load_saved_decoder=True):
 
 	print('\nStart Training\n')
 
-	epoch_num = 5
-	batch_size = 1024
+	epoch_num = config["multi_train_epochs"]
+	batch_size = config["multi_train_batch_size"] 
 	Kill = True
 
 	p_u_ratio = int(len(prod_dict)/len(user_dict))
@@ -84,8 +89,8 @@ def train(category, weight,load_saved_decoder=True):
 	for batch, batch_id, train_mode in gen(encoded_data, reverse_encoded_vocab, batch_size, p_u_ratio, user_dict, prod_dict):
 		if batch_id == 2:
 			print('Saving model and embeddings')
-			torch.save(image_model.state_dict(), '../saved/image_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
-			torch.save(skip_gram_model.state_dict(), '../saved/skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(image_model.state_dict(), '../saved/'+config["model_name"]+'_image_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(skip_gram_model.state_dict(), '../saved/'+config["model_name"]+'_skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
 			get_embeddings(skip_gram_model, reverse_encoded_vocab, epoch, int(batch_id))
 			epoch += 1
 
@@ -116,7 +121,8 @@ def train(category, weight,load_saved_decoder=True):
 			skip_optimizer.step()
 
 		if train_mode == 'prod':
-			skip_gram_emb = gaussian(skip_gram_emb)            
+			if (bool(config["add_noise"])): 
+				skip_gram_emb = gaussian(skip_gram_emb)            
 			pred_image = image_model(skip_gram_emb)
 			image_loss, only_image = multi_task_model(skip_gram_loss, pred_image, image_batch)
 
@@ -131,16 +137,16 @@ def train(category, weight,load_saved_decoder=True):
 			start_b = time.time()
 		if batch_id % 3000 == 0:
 			print('Saving model and embeddings')
-			torch.save(image_model.state_dict(), '../saved/image_model_load_decoder.e-{}_b-{}_'.format(epoch, int(batch_id)))
-			torch.save(skip_gram_model.state_dict(), '../saved/skip_gram_model_load_decoder.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(image_model.state_dict(), '../saved/'+config["model_name"]+'_image_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
+			torch.save(skip_gram_model.state_dict(), '../saved/'+config["model_name"]+'_skip_gram_model.e-{}_b-{}_'.format(epoch, int(batch_id)))
 			get_embeddings(skip_gram_model, reverse_encoded_vocab, epoch, int(batch_id))
-		if epoch >= epoch_num:
+		if epoch > epoch_num:
 			print("\nOptimization Finished")
 			break
 	return model
 
 if __name__ == '__main__':
-	model = train("Men", True,False)
+	model = train()
 
 
 

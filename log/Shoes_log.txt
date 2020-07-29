@@ -18,6 +18,6 @@ Final stats after removing missing image files:
 #test users = 22066
  #test products = 16896
 
-Time taken for reading data = 408.9252 sec
+Time taken for reading data = 762.9878 sec
 
-Time taken for generating metapaths = 263.4417 sec
+Time taken for generating metapaths = 1162.7782 sec

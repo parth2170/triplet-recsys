@@ -1,23 +1,145 @@
-Raw #users = 862314
-#users with > 1 interactions = 16969
-#corresponding prods = 60339
-#users in train set = 16968
-#users in test set = 16968
-#products in train set = 54613
-#products in test set = 12632
+Raw #users = 959199
+#users with > 1 interactions = 19619
+#corresponding prods = 69015
+#users in train set = 19618
+#users in test set = 19618
+#products in train set = 62426
+#products in test set = 14532
 #cold start products = 50
-#users in cold products = 1137
+#users in cold products = 1155
 #users in cold products who are not present in user_dict = 0
-#users after removing Cold Start Products = 16968
-#products after removing Cold Start Products = 54563
+#users after removing Cold Start Products = 19618
+#products after removing Cold Start Products = 62376
 
 Final stats after removing missing image files:
-#train users = 16968
- #train products = 54233
+#train users = 19618
+ #train products = 61996
  #cold_start = 50
-#test users = 16968
- #test products = 12632
+#test users = 19618
+ #test products = 14532
 
-Time taken for reading data = 366.9839 sec
+Time taken for reading data = 589.1892 sec
 
-Time taken for generating metapaths = 205.5541 sec
+Time taken for generating metapaths = 1017.0061 sec
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.500296514421848
+AUC -- IBR = 0.5000837903667034
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.4995439812684683
+AUC -- IBR = 0.4995794013356294
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.5001574593826366
+AUC -- IBR = 0.5005121754708729
+# Cold-Start
+Accuracy -- IBR = 0.4988344988344988
+AUC -- IBR = 0.4995939197723807
+##########################
+######## Image Nearest-Neighbour Baseline
+### IBR Style Product-Product Evaluation Reults ##
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.4998456080079343
+AUC -- IBR = 0.4998824185932882
+# Cold-Start
+Accuracy -- IBR = 0.4972487829630687
+AUC -- IBR = 0.49609620718104075
+##########################
+######## Image Nearest-Neighbour Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.4999529666779138
+AUC -- IBR = 0.500274994505998
+# Cold-Start
+Accuracy -- IBR = 0.49860457003314146
+AUC -- IBR = 0.4980314602121367
+##########################
+######## Image Nearest-Neighbour Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.49939572405754423
+AUC -- IBR = 0.4989588571656176
+# Cold-Start
+Accuracy -- IBR = 0.49994449994449996
+AUC -- IBR = 0.5011601830089465
+##########################
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.5002361890739548
+AUC -- IBR = 0.4997232281347331
+# Cold-Start
+Accuracy -- IBR = 0.500681857824715
+AUC -- IBR = 0.49953139811580693
+##########################
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.4996145312515976
+AUC -- IBR = 0.4992329818118417
+# Cold-Start
+Accuracy -- IBR = 0.49836671265242694
+AUC -- IBR = 0.4971691285445559
+##########################
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.499581812418842
+AUC -- IBR = 0.499342231285061
+# Cold-Start
+Accuracy -- IBR = 0.49940535654821366
+AUC -- IBR = 0.49928509404407656
+##########################
+######## Image Nearest-Neighbour Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.4999989775364764
+AUC -- IBR = 0.49988191969657464
+# Cold-Start
+Accuracy -- IBR = 0.5000237857380715
+AUC -- IBR = 0.5002407697943455
+##########################
+######## Image Nearest-Neighbour Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+######## Random Scoring Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.4999652362401971
+AUC -- IBR = 0.4997219850412218
+# Cold-Start
+Accuracy -- IBR = 0.5003012860155718
+AUC -- IBR = 0.49985832946409786
+##########################
+######## Image Nearest-Neighbour Baseline
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
