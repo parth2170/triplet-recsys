@@ -1,0 +1,3 @@
+python3 autoencoder_train.py
+python3 gan_style_training.py
+python3 autoencoder_train.py
