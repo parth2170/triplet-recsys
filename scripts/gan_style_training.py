@@ -57,9 +57,9 @@ def train():
 
 	if (bool(config["load_saved_decoder"])):
 		skip_gram_model = SkipGram2(len(encoded_vocab),config["embedding_dim"],encoded_vocab,prod_images,4096,
-                                    '../saved/'+config["model_name"]+'_ae_encoder.e-0')
+                                    '../saved/'+str(config["embedding_dim"])+'dim_ae_encoder')
 		image_model = ImageDecoder(embedding_dimension = embedding_dimension, image_dimension = 4096)
-		image_model.load_state_dict(torch.load('../saved/'+config["model_name"]+'_ae_decoder.e-0'))
+		image_model.load_state_dict(torch.load('../saved/'+str(config["embedding_dim"])+'dim_ae_decoder'))
 # 		multi_task_model = MultiTaskLossWrapper(task_num = 2)
 	else:
 		skip_gram_model = SkipGram(vocab_size = total_words, embedding_dimension = embedding_dimension)

@@ -1,3 +1,3 @@
-{add_noise: true, ae_batch_size: 512, ae_epochs: 1, ae_fix_decoder: false, category: Men,
-  embedding_dim: 100, load_saved_decoder: true, model_name: xyz, multi_train_batch_size: 512,
-  multi_train_epochs: 1, weights: true}
+{add_noise: true, ae_batch_size: 512, ae_epochs: 10, category: Men,
+  embedding_dim: 100, load_saved_decoder: true, model_name: MULTI_TASK_WITH_NOISE,
+  multi_train_batch_size: 512, multi_train_epochs: 2, weights: true}

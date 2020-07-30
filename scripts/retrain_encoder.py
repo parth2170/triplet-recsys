@@ -17,7 +17,7 @@ with open("./config.yaml") as file:
 	config = yaml.load(file)
      
         
-def train(category, weight):
+def train(category, weight,fix_decoder=False):
 
 	prod_images = get_image_data(category)
 	dataset = np.asarray(list(prod_images.values()))   
@@ -29,12 +29,16 @@ def train(category, weight):
 	################################
 
 
-	model = AutoEncoder(embedding_dimension,4096)
+	model = AutoEncoder(embedding_dimension,4096)    
+	decoder_path = '../saved/'+config["model_name"]+'_image_model.e-{}_b-{}_'.format(int(config["multi_train_epochs"]), 6000)
+	model.decoder.load_state_dict(torch.load(decoder_path))
+	for param in model.decoder.parameters():
+		param.requires_grad = False
+
 
 	if torch.cuda.is_available():
 			print('!!GPU!!')
 			model.cuda()
-
 	optimizer = torch.optim.Adam(model.parameters(), lr = 0.0001)
 
 	print('\nStart Training\n')
@@ -65,9 +69,9 @@ def train(category, weight):
 				print('epoch = {}\tbatch = {}\tloss = {:.5f}\t\ttime = {:.2f}'.format(epoch, batch_id, image_loss, end_b - start_b))
 				start_b = time.time()
 			if batch_id % 100 == 0:
-				print('Saving model and embeddings')
-				torch.save(model.decoder.state_dict(), '../saved/'+str(config["embedding_dim"])+'dim_ae_decoder')
-				torch.save(model.encoder.state_dict(), '../saved/'+str(config["embedding_dim"])+'dim_ae_encoder')
+				print('Saving Encoder')
+				torch.save(model.encoder.state_dict(), '../saved/'+config["model_name"]+'_retrained_encoder.e-{}'.format(epoch))
+
 	print("\nOptimization Finished")
 
 	return model

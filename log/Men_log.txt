@@ -143,3 +143,95 @@ AUC -- IBR = 0.49985832946409786
 ######## Image Nearest-Neighbour Baseline
 ### IBR Style Product-Product Evaluation Reults ##
 # Warm-Start
+######## Model used --> GAN_WITH_NOISE
+### IBR Style Product-Product Evaluation Reults ##
+######## Model used --> GAN_WITH_NOISE
+### IBR Style Product-Product Evaluation Reults ##
+######## Model used --> GAN_WITH_NOISE
+### IBR Style Product-Product Evaluation Reults ##
+######## Model used --> GAN_WITH_NOISE
+### IBR Style Product-Product Evaluation Reults ##
+######## Model used --> GAN_WITH_NOISE
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+######## Model used --> GAN_WITH_NOISE
+### IBR Style Product-Product Evaluation Reults ##
+######## Model used --> GAN
+### IBR Style Product-Product Evaluation Reults ##
+######## Model used --> GAN
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.7861224723630017
+AUC -- IBR = 0.8487242675839166
+# Cold-Start
+Accuracy -- IBR = 0.4955451913798649
+AUC -- IBR = 0.5457346898849675
+##########################
+######## Model used --> GAN
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.6583089001057807
+AUC -- IBR = 0.7201303853318546
+# Cold-Start
+Accuracy -- IBR = 0.4978932132518495
+AUC -- IBR = 0.4800799508084157
+##########################
+######## Model used --> GAN
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.7555115427818483
+AUC -- IBR = 0.8487670513436795
+# Cold-Start
+Accuracy -- IBR = 0.4955451913798649
+AUC -- IBR = 0.5462389188838555
+##########################
+######## Model used --> GAN
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.7444679967345068
+AUC -- IBR = 0.8487906822484378
+# Cold-Start
+Accuracy -- IBR = 0.4955451913798649
+AUC -- IBR = 0.5465591999580794
+##########################
+######## Model used --> GAN
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.7812743607633397
+AUC -- IBR = 0.8487906822484378
+# Cold-Start
+Accuracy -- IBR = 0.4955451913798649
+AUC -- IBR = 0.5465591999580794
+##########################
+######## Model used --> MULTI_TASK_WITH_NOISE_E-2
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+######## Model used --> MULTI_TASK_WITH_NOISE_E-2
+### IBR Style Product-Product Evaluation Reults ##
+######## Model used --> MULTI_TASK_WITH_NOISE_E-2
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+######## Model used --> MULTI_TASK_WITH_NOISE_E-2
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+######## Model used --> MULTI_TASK_WITH_NOISE_E-2
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.6550168082873143
+# Cold-Start
+Accuracy -- IBR = 0.49556127372145387
+##########################
+######## Model used --> MULTI_TASK_WITH_NOISE_E-2
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.6414821983562048
+# Cold-Start
+Accuracy -- IBR = 0.4978932132518495
+##########################
+######## Model used --> MULTI_TASK_WITH_NOISE_E-2
+### IBR Style Product-Product Evaluation Reults ##
+# Warm-Start
+Accuracy -- IBR = 0.6524776622669807
+# Cold-Start
+Accuracy -- IBR = 0.4959472499195883
+##########################
