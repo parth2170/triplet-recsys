@@ -16,7 +16,7 @@ def rate_weighted(rate_list, weight):
 	return choice
 
 
-def metapaths_gen(user_dict, prod_dict, dataset_name, numwalks = 20, walklength = 10, weight = False):
+def metapaths_gen(user_dict, prod_dict, dataset_name, numwalks = 5, walklength = 5, weight = False):
 	outfile = open('../saved/{}_metapaths_weight-{}_.txt'.format(dataset_name, weight), 'w')
 	for user0 in tqdm(user_dict):
 		for _ in range(numwalks):
@@ -27,6 +27,19 @@ def metapaths_gen(user_dict, prod_dict, dataset_name, numwalks = 20, walklength 
 				path = path + ' ' + prod
 				user = rate_weighted(prod_dict[prod], weight)
 				path = path + ' ' + user
+			
+			path = path + '\n'
+			outfile.write(path)
+			
+	for prod0 in tqdm(prod_dict):
+		for _ in range(numwalks):
+			path = prod0
+			prod = prod0
+			for _ in range(walklength):
+				user = rate_weighted(prod_dict[prod], weight)
+				path = path + ' ' + user
+				prod = rate_weighted(user_dict[user], weight)
+				path = path + ' ' + prod
 			
 			path = path + '\n'
 			outfile.write(path)
